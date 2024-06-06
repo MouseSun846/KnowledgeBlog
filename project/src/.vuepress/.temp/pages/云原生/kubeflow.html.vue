@@ -422,10 +422,10 @@ Katib 项目是开源的。开发者指南是希望为该项目做出贡献的�
 <p>这些服务涵盖了实验管理、流水线管理、作业管理、运行管理、任务管理、报告生成、数据可视化和认证功能，并且支持不同版本的API。
 <img src="https://cdn.nlark.com/yuque/__mermaid_v3/fa7f455b9be948e4266cf6b00558b7eb.svg#lake_card_v2=eyJ0eXBlIjoibWVybWFpZCIsImNvZGUiOiJncmFwaCBURDtcbiAgICBzdWJncmFwaCBSUEMgU2VydmVyXG4gICAgUlBDX1NlcnZlciAtLT4gRXhwZXJpbWVudFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBQaXBlbGluZVNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBKb2JTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUnVuU2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFRhc2tTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVwb3J0U2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFZpc3VhbGl6YXRpb25TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gQXV0aFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBSZWN1cnJpbmdSdW5TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVmbGVjdGlvblNlcnZpY2VcbiAgICBlbmRcbiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZmE3ZjQ1NWI5YmU5NDhlNDI2NmNmNmIwMDU1OGI3ZWIuc3ZnIiwiY29sbGFwc2UiOnRydWUsImlkIjoiVm1TMmEiLCJtYXJnaW4iOnsidG9wIjp0cnVlLCJib3R0b20iOnRydWV9LCJjYXJkIjoiZGlhZ3JhbSJ9" alt="" loading="lazy"></p>
 <h2 id="pipeline创建流程" tabindex="-1"><a class="header-anchor" href="#pipeline创建流程"><span>pipeline创建流程</span></a></h2>
-<p><img src="https://cdn.nlark.com/yuque/0/2024/jpeg/26064275/1717048698337-ac40c262-c37a-40d4-b6e0-cab8c5c72759.jpeg" alt="" loading="lazy">
+<p><img src="/assets/images/1717048698337-ac40c262-c37a-40d4-b6e0-cab8c5c72759.jpeg" alt="" loading="lazy">
 创建流水线只是把相关参数信息写入数据库。</p>
 <h2 id="创建runs" tabindex="-1"><a class="header-anchor" href="#创建runs"><span>创建Runs</span></a></h2>
-<p><img src="https://cdn.nlark.com/yuque/0/2024/jpeg/26064275/1717049876177-87ea2ccb-4bea-4d86-aa40-fd9ef64b2a06.jpeg" alt="" loading="lazy">
+<p><img src="/assets/images/1717049876177-87ea2ccb-4bea-4d86-aa40-fd9ef64b2a06.jpeg" alt="" loading="lazy">
 Runs创建过程是 请求apiserver-&gt;请求workflow,然后保存相关数据</p>
 </div></template>
 

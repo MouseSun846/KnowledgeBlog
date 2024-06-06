@@ -396,11 +396,11 @@ reflection.Register(s)
 ![](https://cdn.nlark.com/yuque/__mermaid_v3/fa7f455b9be948e4266cf6b00558b7eb.svg#lake_card_v2=eyJ0eXBlIjoibWVybWFpZCIsImNvZGUiOiJncmFwaCBURDtcbiAgICBzdWJncmFwaCBSUEMgU2VydmVyXG4gICAgUlBDX1NlcnZlciAtLT4gRXhwZXJpbWVudFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBQaXBlbGluZVNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBKb2JTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUnVuU2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFRhc2tTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVwb3J0U2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFZpc3VhbGl6YXRpb25TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gQXV0aFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBSZWN1cnJpbmdSdW5TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVmbGVjdGlvblNlcnZpY2VcbiAgICBlbmRcbiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZmE3ZjQ1NWI5YmU5NDhlNDI2NmNmNmIwMDU1OGI3ZWIuc3ZnIiwiY29sbGFwc2UiOnRydWUsImlkIjoiVm1TMmEiLCJtYXJnaW4iOnsidG9wIjp0cnVlLCJib3R0b20iOnRydWV9LCJjYXJkIjoiZGlhZ3JhbSJ9)
 ## pipeline创建流程
 
-![](https://cdn.nlark.com/yuque/0/2024/jpeg/26064275/1717048698337-ac40c262-c37a-40d4-b6e0-cab8c5c72759.jpeg)
+![](/assets/images/1717048698337-ac40c262-c37a-40d4-b6e0-cab8c5c72759.jpeg)
 创建流水线只是把相关参数信息写入数据库。
 
 ## 创建Runs
-![](https://cdn.nlark.com/yuque/0/2024/jpeg/26064275/1717049876177-87ea2ccb-4bea-4d86-aa40-fd9ef64b2a06.jpeg)
+![](/assets/images/1717049876177-87ea2ccb-4bea-4d86-aa40-fd9ef64b2a06.jpeg)
 Runs创建过程是 请求apiserver->请求workflow,然后保存相关数据
 
 
