@@ -13,16 +13,16 @@ tag:
 Kubeflow 简介
 Kubeflow 项目致力于让机器学习 (ML) 工作流在 Kubernetes 上的部署变得简单、可移植且可扩展。我们的目标不是重新创建其他服务，而是提供一种简单的方法，将最佳的 ML 开源系统部署到各种基础设施中。只要您运行 Kubernetes，就可以运行 Kubeflow。
 下图展示了主要的 Kubeflow 组件，涵盖 Kubernetes 之上 ML 生命周期的每个步骤。
-![](https://cdn.nlark.com/yuque/0/2024/svg/26064275/1716531360679-f5663517-1324-4989-9050-ce9383565580.svg#clientId=ucc6b50f7-0490-4&from=paste&id=u411ff0ab&originHeight=982&originWidth=631&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=uc54ae6c4-9c8c-462a-989f-a62d05472e3&title=)
+![](/assets/images/kubeflow-intro-diagram.drawio.svg)
 # Kubeflow 架构概述
 Kubeflow 是一个面向想要构建和试验 ML 管道的数据科学家的平台。Kubeflow 还适用于想要将 ML 系统部署到各种环境以进行开发、测试和生产级服务的 ML 工程师和运营团队。
 ## 概念概述
 Kubeflow 是_Kubernetes 的 ML 工具包_。
 下图展示了 Kubeflow 作为在 Kubernetes 之上安排 ML 系统组件的平台：
-![](https://cdn.nlark.com/yuque/0/2024/svg/26064275/1716531640312-ddbb1abb-1915-4a08-a5aa-ed4dbad755d2.svg#clientId=ucc6b50f7-0490-4&from=paste&id=u54ac9206&originHeight=1443&originWidth=1652&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u88826d1c-210e-4df0-8181-2d7aa18c9a6&title=)
+![](/assets/images/kubeflow-architecture.drawio.svg)
 
 ## Pipeline
-![](https://cdn.nlark.com/yuque/0/2024/png/26064275/1716536117772-86e24569-b4da-44fd-ba8c-bafe11cb5fe9.png#averageHue=%23847567&clientId=ucc6b50f7-0490-4&from=paste&id=ub57386a7&originHeight=938&originWidth=929&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=ua80a3953-b608-4d57-872e-beb1ef98c6a&title=)在高层次上，管道的执行过程如下：
+![](/assets/images/pipelines-architecture.png)在高层次上，管道的执行过程如下：
 ### Python SDK：
 使用Kubeflow Pipelines特定领域语言（DSL）创建组件或指定管道。
 ### **DSL compiler**：
@@ -74,7 +74,7 @@ MySQL数据库和Minio服务器都由Kubernetes持久卷子系统支持。
 管道中的每个组件独立执行。组件不会在同一进程中运行，也不能直接共享内存数据。你必须将传递给组件之间的数据序列化（转换为字符串或文件），以便数据可以在分布式网络上传输。然后，必须反序列化这些数据以供下游组件使用。
 ## Graph
 在 Kubeflow Pipelines 中，图（Graph）是管道运行时在 Kubeflow Pipelines UI 中的图形表示。图显示了管道运行已执行或正在执行的步骤，箭头指示了管道组件之间的父/子关系。运行一开始，就可以查看这个图。图中的每个节点对应管道中的一个步骤，并进行相应的标注。
-![](https://cdn.nlark.com/yuque/0/2024/png/26064275/1716774493881-13174336-5aa8-44df-b15b-b469e4ab57c1.png#averageHue=%23f3f3f3&clientId=ueebc9b0c-bc43-4&from=paste&id=u11544e5c&originHeight=2240&originWidth=3584&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u82646809-a50b-4f5b-80ef-1f987504493&title=)
+![](/assets/images/pipelines-xgboost-graph.png)
 每个节点的右上角有一个图标，指示其状态：运行中（running）、成功（succeeded）、失败（failed）或跳过（skipped）。当节点的父节点包含条件语句时，节点可能会被跳过。
 ## Experiment
 实验是一个工作空间，你可以在其中尝试管道的不同配置。你可以使用实验将你的运行组织成逻辑组。实验可以包含任意的运行，包括定期运行。
@@ -268,9 +268,11 @@ Katib 是一个原生于 Kubernetes 的自动化机器学习（AutoML）项目�
 Katib 是一个与机器学习（ML）框架无关的项目。它可以调优用任何用户选择的语言编写的应用程序的超参数，并且本身支持许多 ML 框架，例如 TensorFlow、MXNet、PyTorch、XGBoost 等。
 Katib 支持多种 AutoML 算法，例如贝叶斯优化（Bayesian optimization）、帕尔森估计树（Tree of Parzen Estimators）、随机搜索（Random Search）、协方差矩阵自适应进化策略（Covariance Matrix Adaptation Evolution Strategy）、Hyperband、高效神经架构搜索（Efficient Neural Architecture Search）、可微分架构搜索（Differentiable Architecture Search）等等。更多算法支持即将推出。
 Katib 项目是开源的。开发者指南是希望为该项目做出贡献的开发者的良好起点。
-## ![](https://cdn.nlark.com/yuque/0/2024/png/26064275/1716882971038-611bb729-bef5-42b1-b5d7-06a142b38fc0.png#averageHue=%23f8f5ef&clientId=ud6a1b892-a7d6-4&from=paste&id=uf7e13e00&originHeight=515&originWidth=1158&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u7650100a-64e9-4a2d-a567-0541282e036&title=)为什么选择 Katib？
+![](/assets/images/katib-overview.drawio.png)
+
+## 为什么选择 Katib？
 Katib 解决了 AI/ML 生命周期中的自动化机器学习（AutoML）步骤中的超参数优化或神经架构搜索问题，如下图所示：
-![](https://cdn.nlark.com/yuque/0/2024/svg/26064275/1716883258495-d34d8827-6dbe-4aed-a181-841eeda0e6c3.svg#clientId=ud6a1b892-a7d6-4&from=paste&id=u44260923&originHeight=1182&originWidth=2881&originalType=url&ratio=1&rotation=0&showTitle=false&status=done&style=none&taskId=u11d87f5f-acec-4ec8-bc04-3087aa084b2&title=)
+![](/assets/images/ml-lifecycle-katib.drawio.svg)
 
 - **多节点和多GPU分布式训练**：Katib 可以协调多节点和多GPU的分布式训练工作负载。
 - **与 Kubeflow Training Operator 集成**：Katib 与 Kubeflow 的训练操作（如 PyTorchJob）集成，允许优化任何规模的大模型的超参数。
@@ -284,7 +286,7 @@ Katib 解决了 AI/ML 生命周期中的自动化机器学习（AutoML）步骤�
 
 # Pipeline工作流程
 ## pipeline服务注册流程
-![](https://cdn.nlark.com/yuque/0/2024/jpeg/26064275/1717032510724-7313197a-794c-4ee1-8b87-0b404927dd36.jpeg)
+![](/assets/images/1717032510724-7313197a-794c-4ee1-8b87-0b404927dd36.jpeg)
 其他服务注册在 `startRpcServer` 函数中，注册了以下服务：
 
 ### API v1beta1 注册的服务
@@ -393,7 +395,7 @@ reflection.Register(s)
 10. ReflectionService
 
 这些服务涵盖了实验管理、流水线管理、作业管理、运行管理、任务管理、报告生成、数据可视化和认证功能，并且支持不同版本的API。
-![](https://cdn.nlark.com/yuque/__mermaid_v3/fa7f455b9be948e4266cf6b00558b7eb.svg#lake_card_v2=eyJ0eXBlIjoibWVybWFpZCIsImNvZGUiOiJncmFwaCBURDtcbiAgICBzdWJncmFwaCBSUEMgU2VydmVyXG4gICAgUlBDX1NlcnZlciAtLT4gRXhwZXJpbWVudFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBQaXBlbGluZVNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBKb2JTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUnVuU2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFRhc2tTZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVwb3J0U2VydmljZVxuICAgIFJQQ19TZXJ2ZXIgLS0-IFZpc3VhbGl6YXRpb25TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gQXV0aFNlcnZpY2VcbiAgICBSUENfU2VydmVyIC0tPiBSZWN1cnJpbmdSdW5TZXJ2aWNlXG4gICAgUlBDX1NlcnZlciAtLT4gUmVmbGVjdGlvblNlcnZpY2VcbiAgICBlbmRcbiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZmE3ZjQ1NWI5YmU5NDhlNDI2NmNmNmIwMDU1OGI3ZWIuc3ZnIiwiY29sbGFwc2UiOnRydWUsImlkIjoiVm1TMmEiLCJtYXJnaW4iOnsidG9wIjp0cnVlLCJib3R0b20iOnRydWV9LCJjYXJkIjoiZGlhZ3JhbSJ9)
+![](/assets/images/fa7f455b9be948e4266cf6b00558b7eb.svg)
 ## pipeline创建流程
 
 ![](/assets/images/1717048698337-ac40c262-c37a-40d4-b6e0-cab8c5c72759.jpeg)
