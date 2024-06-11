@@ -1,4 +1,6 @@
-<template><div><h1 id="博文1-https-indiehacker-one" tabindex="-1"><a class="header-anchor" href="#博文1-https-indiehacker-one"><span>博文1 <a href="https://indiehacker.one/" target="_blank" rel="noopener noreferrer">https://indiehacker.one/</a></span></a></h1>
+<template><div><p>杂谈之独立开发者一点思考</p>
+<h1 id="博文1" tabindex="-1"><a class="header-anchor" href="#博文1"><span>博文1</span></a></h1>
+<p><a href="https://indiehacker.one/" target="_blank" rel="noopener noreferrer">https://indiehacker.one/</a></p>
 <p><strong>全文总结</strong>
 本文主要介绍了独立开发者的相关内容，包括什么是独立开发者、为什么要做独立开发者、有哪些牛逼的独立开发者、独立开发者面临的困境、独立开发的一些基本流程、想法、如何判断想法的是不是可以赚钱、三大核心问题、如何解决用户的问题、使用什么样的编程语言、采用什么样的产品形态、一个 MVP 产品最少需要做多少工作、一周开发一个新产品、三点金规铁律、发布、别人说你的产品是垃圾，伪需求怎么办、增长、心态、如何保持积极的心态、如何面对压力等。</p>
 <p><strong>重要亮点</strong></p>
