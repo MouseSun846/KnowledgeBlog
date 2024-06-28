@@ -1,5 +1,4 @@
 ---
-icon: pen-to-square
 date: 2024-06-28
 title: k8s operator
 category:

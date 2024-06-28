@@ -1,5 +1,4 @@
 ---
-icon: pen-to-square
 date: 2024-06-06
 title: Kubeflow 简介
 category:
