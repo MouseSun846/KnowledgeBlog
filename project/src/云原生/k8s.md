@@ -15,7 +15,7 @@ Kubernetes支持的访问模式如下。
 载。
 
 * ReadOnlyMany（ROX）：只读权限，允许被多个Node挂载。
-S
+
 * ReadWriteMany（RWX）：读写权限，允许被多个Node挂载。
   
 某些PV可能支持多种访问模式，但PV在挂载时只能使用一种访问模式，多种访问模式不能同时生效。
@@ -29,7 +29,7 @@ Kubernetes支持的回收策略如下。
 目前只有NFS和HostPath两种类型的PV支持Recycle策略；
 AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持Delete策略。
 
-## pv (STATUS)
+## PV (STATUS)
 在 Kubernetes 中，PersistentVolume (PV) 是一个集群级别的资源，用于表示集群中持久化存储的详细信息和状态。PV 的状态由其 `STATUS` 字段来表示，它反映了存储卷的当前状态。了解这些状态有助于掌握 PV 在生命周期中的位置，以及它是否能够被持久卷声明 (PersistentVolumeClaim, PVC) 使用。
 
 以下是 Kubernetes 中 PV 的几种可能的状态：

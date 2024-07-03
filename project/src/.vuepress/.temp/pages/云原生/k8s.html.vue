@@ -8,8 +8,7 @@
 载。</p>
 </li>
 <li>
-<p>ReadOnlyMany（ROX）：只读权限，允许被多个Node挂载。
-S</p>
+<p>ReadOnlyMany（ROX）：只读权限，允许被多个Node挂载。</p>
 </li>
 <li>
 <p>ReadWriteMany（RWX）：读写权限，允许被多个Node挂载。</p>
@@ -25,7 +24,7 @@ S</p>
 </ul>
 <p>目前只有NFS和HostPath两种类型的PV支持Recycle策略；
 AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持Delete策略。</p>
-<h2 id="pv-status" tabindex="-1"><a class="header-anchor" href="#pv-status"><span>pv (STATUS)</span></a></h2>
+<h2 id="pv-status" tabindex="-1"><a class="header-anchor" href="#pv-status"><span>PV (STATUS)</span></a></h2>
 <p>在 Kubernetes 中，PersistentVolume (PV) 是一个集群级别的资源，用于表示集群中持久化存储的详细信息和状态。PV 的状态由其 <code v-pre>STATUS</code> 字段来表示，它反映了存储卷的当前状态。了解这些状态有助于掌握 PV 在生命周期中的位置，以及它是否能够被持久卷声明 (PersistentVolumeClaim, PVC) 使用。</p>
 <p>以下是 Kubernetes 中 PV 的几种可能的状态：</p>
 <h3 id="_1-available" tabindex="-1"><a class="header-anchor" href="#_1-available"><span>1. <code v-pre>Available</code></span></a></h3>
