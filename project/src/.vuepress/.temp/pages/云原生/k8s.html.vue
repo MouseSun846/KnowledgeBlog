@@ -95,6 +95,106 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <span class="line"><span>    |  删除或再利用</span></span>
 <span class="line"><span>    V</span></span>
 <span class="line"><span>Failed (或) Available</span></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div></template>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h1 id="resourcequotas与limitranges" tabindex="-1"><a class="header-anchor" href="#resourcequotas与limitranges"><span>resourcequotas与limitranges</span></a></h1>
+<p>在 Kubernetes（K8s）集群中，<strong>ResourceQuotas</strong> 和 <strong>LimitRanges</strong> 是两种用于资源管理和控制的机制。它们帮助管理员确保资源的公平分配和高效利用。以下是对这两者的详细介绍：</p>
+<h2 id="resourcequotas" tabindex="-1"><a class="header-anchor" href="#resourcequotas"><span>ResourceQuotas</span></a></h2>
+<p><strong>ResourceQuotas</strong> 是一种在 Kubernetes 中用来限制命名空间（Namespace）内资源总量的机制。它们用于防止某个命名空间消耗过多的集群资源，从而影响其他命名空间的正常运行。</p>
+<h3 id="作用" tabindex="-1"><a class="header-anchor" href="#作用"><span>作用</span></a></h3>
+<ul>
+<li><strong>限制命名空间资源使用</strong>: ResourceQuotas 确保每个命名空间不会消耗超过指定的资源限额。</li>
+<li><strong>控制资源分配</strong>: 它们帮助管理员公平分配集群资源，防止资源耗尽。</li>
+<li><strong>提升资源管理能力</strong>: 通过设置资源限额，管理员可以更好地管理和监控资源使用情况。</li>
+</ul>
+<h3 id="配置示例" tabindex="-1"><a class="header-anchor" href="#配置示例"><span>配置示例</span></a></h3>
+<p>以下是一个 ResourceQuota 的 YAML 配置示例，它限制了某个命名空间内的 CPU 和内存总量，以及对象数量（如 Pod 和 Service）：</p>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">ResourceQuota</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">example-quota</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">example-namespace</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  hard</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    pods</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"10"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">                  # 限制 Pod 的总数量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    services</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"5"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">               # 限制 Service 的总数量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    requests.cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"4"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">           # 限制 CPU 请求总量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    requests.memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"8Gi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">      # 限制内存请求总量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    limits.cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"10"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">            # 限制 CPU 使用总量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    limits.memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"16Gi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">       # 限制内存使用总量</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="主要字段" tabindex="-1"><a class="header-anchor" href="#主要字段"><span>主要字段</span></a></h3>
+<ul>
+<li><strong>hard</strong>: 定义了资源的硬性限制，包括 CPU、内存、存储和对象数量等。</li>
+<li><strong>scopes</strong>: 可选字段，指定了 ResourceQuota 适用的对象范围（如仅应用于某些特定的资源类型）。</li>
+</ul>
+<h3 id="使用场景" tabindex="-1"><a class="header-anchor" href="#使用场景"><span>使用场景</span></a></h3>
+<ul>
+<li><strong>开发环境</strong>: 限制资源以确保测试环境不会占用过多的生产资源。</li>
+<li><strong>多租户环境</strong>: 在共享集群中，控制不同租户（命名空间）之间的资源使用。</li>
+<li><strong>成本管理</strong>: 控制资源使用来管理和控制成本。</li>
+</ul>
+<h2 id="limitranges" tabindex="-1"><a class="header-anchor" href="#limitranges"><span>LimitRanges</span></a></h2>
+<p><strong>LimitRanges</strong> 是一种在 Kubernetes 中用于限制命名空间内单个 Pod 或容器资源使用的机制。与 ResourceQuotas 的整体限制不同，LimitRanges 主要控制单个 Pod 或容器的资源使用范围。</p>
+<h3 id="作用-1" tabindex="-1"><a class="header-anchor" href="#作用-1"><span>作用</span></a></h3>
+<ul>
+<li><strong>设置默认资源限制</strong>: 如果 Pod 或容器没有指定资源请求和限制，LimitRanges 可以提供默认值。</li>
+<li><strong>防止资源过度消耗</strong>: 通过限制单个容器或 Pod 的资源使用，防止过多的资源消耗影响整个集群的性能。</li>
+<li><strong>鼓励合理的资源分配</strong>: 鼓励开发人员在部署 Pod 时合理设置资源请求和限制。</li>
+</ul>
+<h3 id="配置示例-1" tabindex="-1"><a class="header-anchor" href="#配置示例-1"><span>配置示例</span></a></h3>
+<p>以下是一个 LimitRange 的 YAML 配置示例，它为容器设置了 CPU 和内存的默认值和最大/最小值：</p>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">LimitRange</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">example-limits</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">example-namespace</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  limits</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">  - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">max</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"1"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">             # 容器的最大 CPU 使用量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"1Gi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">        # 容器的最大内存使用量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    min</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"100m"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">          # 容器的最小 CPU 使用量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"128Mi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">      # 容器的最小内存使用量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    default</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"500m"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">          # 容器的默认 CPU 请求量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"512Mi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">      # 容器的默认内存请求量</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    defaultRequest</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      cpu</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"250m"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">          # 容器的默认 CPU 请求</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      memory</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"256Mi"</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">      # 容器的默认内存请求</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    type</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">Container</span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">        # 应用类型</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="主要字段-1" tabindex="-1"><a class="header-anchor" href="#主要字段-1"><span>主要字段</span></a></h3>
+<ul>
+<li><strong>max</strong>: 定义了单个容器可以请求的最大资源量。</li>
+<li><strong>min</strong>: 定义了单个容器必须请求的最小资源量。</li>
+<li><strong>default</strong>: 定义了容器没有指定资源请求和限制时的默认值。</li>
+<li><strong>defaultRequest</strong>: 定义了容器没有指定资源请求时的默认请求值。</li>
+<li><strong>type</strong>: 指定了限制适用于 Pod 还是容器。</li>
+</ul>
+<h3 id="使用场景-1" tabindex="-1"><a class="header-anchor" href="#使用场景-1"><span>使用场景</span></a></h3>
+<ul>
+<li><strong>应用程序标准化</strong>: 在命名空间内强制执行资源使用标准，确保所有容器符合预期的资源使用模式。</li>
+<li><strong>资源优化</strong>: 防止资源过度配置或资源不足，从而优化集群性能和资源利用率。</li>
+<li><strong>开发与测试环境</strong>: 在不同环境中设置不同的限制，确保资源的合理分配和使用。</li>
+</ul>
+<h2 id="比较与总结" tabindex="-1"><a class="header-anchor" href="#比较与总结"><span>比较与总结</span></a></h2>
+<ul>
+<li>
+<p><strong>ResourceQuotas</strong>:</p>
+<ul>
+<li><strong>范围</strong>: 适用于整个命名空间的资源总量。</li>
+<li><strong>目的</strong>: 控制命名空间内的资源使用上限，确保集群资源的公平分配和高效利用。</li>
+<li><strong>典型场景</strong>: 多租户环境、开发环境中的资源限制。</li>
+</ul>
+</li>
+<li>
+<p><strong>LimitRanges</strong>:</p>
+<ul>
+<li><strong>范围</strong>: 适用于单个 Pod 或容器的资源使用。</li>
+<li><strong>目的</strong>: 设置资源使用的默认值和最大/最小限制，防止个体资源过度消耗。</li>
+<li><strong>典型场景</strong>: 应用程序的资源标准化和资源优化。</li>
+</ul>
+</li>
+</ul>
+<p>两者结合使用，可以在 Kubernetes 集群中提供强大的资源管理能力，确保资源的公平分配和高效使用。</p>
+</div></template>
 
 
