@@ -89,8 +89,7 @@ Released
 Failed (或) Available
 ```
 
-
-# resourcequotas与limitranges
+# Resourcequotas与Limitranges
 
 在 Kubernetes（K8s）集群中，**ResourceQuotas** 和 **LimitRanges** 是两种用于资源管理和控制的机制。它们帮助管理员确保资源的公平分配和高效利用。以下是对这两者的详细介绍：
 
