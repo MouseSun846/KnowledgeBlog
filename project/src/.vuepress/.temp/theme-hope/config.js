@@ -1,13 +1,13 @@
 import { defineClientConfig } from "vuepress/client";
-import { HopeIcon, Layout, NotFound, injectDarkmode, setupDarkmode, setupSidebarItems, scrollPromise } from "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_vuepress@2.0.0-rc.13/node_modules/vuepress-theme-hope/lib/bundle/export.js";
+import { HopeIcon, Layout, NotFound, injectDarkmode, setupDarkmode, setupSidebarItems, scrollPromise } from "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_markmap-lib@0.17.0_markmap-toolbar@0.17.0__hgcu6tbt5wl4v33p6dd36o3vfe/node_modules/vuepress-theme-hope/lib/bundle/export.js";
 
 import { defineCatalogInfoGetter } from "D:/Code/knowledgeblob/project/node_modules/.pnpm/@vuepress+plugin-catalog@2.0.0-rc.34_vuepress@2.0.0-rc.13/node_modules/@vuepress/plugin-catalog/lib/client/index.js"
 import { h } from "vue"
-import { BlogCategory, BlogHome, BlogType, BloggerInfo, SocialMedias, Timeline, setupBlog } from "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_vuepress@2.0.0-rc.13/node_modules/vuepress-theme-hope/lib/bundle/modules/blog/export.js";
-import "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_vuepress@2.0.0-rc.13/node_modules/vuepress-theme-hope/lib/bundle/modules/blog/styles/all.scss";
+import { BlogCategory, BlogHome, BlogType, BloggerInfo, SocialMedias, Timeline, setupBlog } from "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_markmap-lib@0.17.0_markmap-toolbar@0.17.0__hgcu6tbt5wl4v33p6dd36o3vfe/node_modules/vuepress-theme-hope/lib/bundle/modules/blog/export.js";
+import "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_markmap-lib@0.17.0_markmap-toolbar@0.17.0__hgcu6tbt5wl4v33p6dd36o3vfe/node_modules/vuepress-theme-hope/lib/bundle/modules/blog/styles/all.scss";
 
 import "D:/Code/knowledgeblob/project/node_modules/.pnpm/@vuepress+helper@2.0.0-rc.34_vuepress@2.0.0-rc.13/node_modules/@vuepress/helper/lib/client/styles/normalize.css";
-import "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_vuepress@2.0.0-rc.13/node_modules/vuepress-theme-hope/lib/bundle/styles/all.scss";
+import "D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-theme-hope@2.0.0-rc.48_markdown-it@14.1.0_markmap-lib@0.17.0_markmap-toolbar@0.17.0__hgcu6tbt5wl4v33p6dd36o3vfe/node_modules/vuepress-theme-hope/lib/bundle/styles/all.scss";
 
 defineCatalogInfoGetter((meta) => {
   const title = meta.t;

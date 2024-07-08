@@ -1,3 +1,5 @@
+import "./chunk-ZS7NZCD4.js";
+
 // node_modules/.pnpm/@vuepress+shared@2.0.0-rc.13/node_modules/@vuepress/shared/dist/index.js
 var isLinkWithProtocol = (link) => /^[a-z][a-z0-9+.-]*:/.test(link) || link.startsWith("//");
 var markdownLinkRegexp = /.md((\?|#).*)?$/;

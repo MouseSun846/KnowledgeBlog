@@ -75,6 +75,7 @@ export default hopeTheme({
       mark: true,
       plantuml: true,
       spoiler: true,
+      markmap: true,
       stylize: [
         {
           matcher: "Recommended",
