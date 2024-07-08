@@ -7,7 +7,7 @@ tag:
   - operator
 ---
 
-### 什么是 Kubernetes Operator？
+## 什么是 Kubernetes Operator？
 
 **Kubernetes Operator** 是一种软件扩展，使用 Kubernetes 原生的 API 和工具来自动管理复杂应用的生命周期。Operator 可以将人类操作员（例如系统管理员）的操作自动化，管理 Kubernetes 应用程序的配置、部署、升级、备份和故障处理等任务。
 

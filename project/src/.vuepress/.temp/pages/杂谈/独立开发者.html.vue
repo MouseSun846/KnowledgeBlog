@@ -1,4 +1,4 @@
-<template><div><p>杂谈之独立开发者一点思考</p>
+<template><div><h2 id="杂谈之独立开发者一点思考" tabindex="-1"><a class="header-anchor" href="#杂谈之独立开发者一点思考"><span>杂谈之独立开发者一点思考</span></a></h2>
 <h1 id="博文1" tabindex="-1"><a class="header-anchor" href="#博文1"><span>博文1</span></a></h1>
 <p><a href="https://indiehacker.one/" target="_blank" rel="noopener noreferrer">https://indiehacker.one/</a></p>
 <p><strong>全文总结</strong>
