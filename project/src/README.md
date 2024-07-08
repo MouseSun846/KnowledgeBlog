@@ -2,7 +2,7 @@
 home: true
 layout: BlogHome
 icon: home
-title: 博客主页
+title: 主页
 heroText: MouseSun
 bgImage: https://bing.com/th?id=OHR.MadagascarRiver_ZH-CN3842472014_1920x1080.webp
 heroFullScreen: true
