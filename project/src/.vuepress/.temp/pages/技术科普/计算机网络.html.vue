@@ -1,4 +1,5 @@
-<template><div><p>HTTP/2 是对 HTTP/1.x 协议的重大升级，旨在提高网络性能和效率。以下是 HTTP/2 相对于 HTTP/1 的一些关键区别和改进：</p>
+<template><div><h1 id="http2与http1区别" tabindex="-1"><a class="header-anchor" href="#http2与http1区别"><span>http2与http1区别?</span></a></h1>
+<p>HTTP/2 是对 HTTP/1.x 协议的重大升级，旨在提高网络性能和效率。以下是 HTTP/2 相对于 HTTP/1 的一些关键区别和改进：</p>
 <h3 id="_1-协议基础" tabindex="-1"><a class="header-anchor" href="#_1-协议基础"><span>1. 协议基础</span></a></h3>
 <ul>
 <li><strong>HTTP/1.x</strong>: 基于纯文本的协议，使用新行符分隔的文本消息进行通信。</li>
