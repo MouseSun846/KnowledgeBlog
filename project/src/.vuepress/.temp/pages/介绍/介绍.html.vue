@@ -1,4 +1,7 @@
-<template><div><p>大家好，我是一名全栈开发工程师，拥有广泛的编程语言知识和丰富的技术经验。以下是我的专业技能和经验介绍：</p>
+<template><div><div class="hint-container tip">
+<p class="hint-container-title">个人简介</p>
+<p>大家好，我是一名全栈开发工程师，拥有广泛的编程语言知识和丰富的技术经验。以下是我的专业技能和经验介绍：</p>
+</div>
 <h4 id="编程语言" tabindex="-1"><a class="header-anchor" href="#编程语言"><span>编程语言</span></a></h4>
 <ul>
 <li><strong>Java</strong>: 熟练使用Java进行企业级应用开发，精通Spring Boot框架，擅长构建高性能和可扩展的后端服务。</li>

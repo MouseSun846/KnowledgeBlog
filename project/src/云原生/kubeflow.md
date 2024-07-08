@@ -6,7 +6,8 @@ category:
 tag:
   - Kubeflow
 ---
-## 云原生之Kubeflow 简介
+::: tip k8s 云原生之Kubeflow 简介
+:::
 
 # 官网
 [https://www.kubeflow.org/docs/started/introduction/](https://www.kubeflow.org/docs/started/introduction/)

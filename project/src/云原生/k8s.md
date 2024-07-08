@@ -6,7 +6,8 @@ category:
 tag:
   - 笔记
 ---
-## k8s 笔记总结
+::: tip k8s 笔记总结
+:::
 
 # pv
 ## 访问模式（Access Modes）

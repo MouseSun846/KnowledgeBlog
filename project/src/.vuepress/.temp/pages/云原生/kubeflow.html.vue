@@ -1,4 +1,6 @@
-<template><div><h2 id="云原生之kubeflow-简介" tabindex="-1"><a class="header-anchor" href="#云原生之kubeflow-简介"><span>云原生之Kubeflow 简介</span></a></h2>
+<template><div><div class="hint-container tip">
+<p class="hint-container-title">k8s 云原生之Kubeflow 简介</p>
+</div>
 <h1 id="官网" tabindex="-1"><a class="header-anchor" href="#官网"><span>官网</span></a></h1>
 <p><a href="https://www.kubeflow.org/docs/started/introduction/" target="_blank" rel="noopener noreferrer">https://www.kubeflow.org/docs/started/introduction/</a></p>
 <h1 id="介绍" tabindex="-1"><a class="header-anchor" href="#介绍"><span>介绍</span></a></h1>

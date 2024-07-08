@@ -1,4 +1,6 @@
-<template><div><h2 id="k8s-笔记总结" tabindex="-1"><a class="header-anchor" href="#k8s-笔记总结"><span>k8s 笔记总结</span></a></h2>
+<template><div><div class="hint-container tip">
+<p class="hint-container-title">k8s 笔记总结</p>
+</div>
 <h1 id="pv" tabindex="-1"><a class="header-anchor" href="#pv"><span>pv</span></a></h1>
 <h2 id="访问模式-access-modes" tabindex="-1"><a class="header-anchor" href="#访问模式-access-modes"><span>访问模式（Access Modes）</span></a></h2>
 <p>Kubernetes支持的访问模式如下。</p>
