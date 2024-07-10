@@ -14,10 +14,12 @@ export default hopeTheme({
 
   logo: "https://mousesun846.github.io/KnowledgeBlog/logo.png",
 
-  repo: "https://mousesun846.github.io/KnowledgeBlog/",
+  // 是否在导航栏内显示仓库链接，默认为 `true`
+  repoDisplay: false,
 
   docsDir: "src",
 
+  fullscreen: true,
   // 导航栏
   navbar,
 
