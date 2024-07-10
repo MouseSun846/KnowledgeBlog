@@ -197,6 +197,8 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 </li>
 </ul>
 <p>两者结合使用，可以在 Kubernetes 集群中提供强大的资源管理能力，确保资源的公平分配和高效使用。</p>
+<h1 id="k8s技能图谱" tabindex="-1"><a class="header-anchor" href="#k8s技能图谱"><span>k8s技能图谱</span></a></h1>
+<figure><img src="/assets/images/k8s技能图谱.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
 </div></template>
 
 
