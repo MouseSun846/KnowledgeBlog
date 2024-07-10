@@ -204,3 +204,67 @@ spec:
 ## k8s技能图谱
 
 ![](/assets/images/k8s技能图谱.png)
+
+## 静态pod
+
+`Static Pod` 是 Kubernetes 中的一种特殊类型的 Pod，它由 kubelet 直接管理，而不是通过 Kubernetes API Server 来创建和管理。Static Pod 通常用于集群管理工具（如 Kubernetes 本身）的部署和管理，尤其是在 Kubernetes 控制平面组件（如 etcd、kube-apiserver、kube-controller-manager 和 kube-scheduler）自身的管理中。
+
+### Static Pod 的特点
+
+1. **由 kubelet 管理**：
+   - Static Pod 由运行在节点上的 kubelet 直接管理，不需要 API Server 的参与。
+   - kubelet 会定期扫描特定的目录（通常是 `/etc/kubernetes/manifests`）中的 Pod 定义文件，并根据这些文件创建和管理 Pod。
+
+2. **没有 ReplicaSet 或 Deployment**：
+   - Static Pod 不是通过 Deployment、ReplicaSet 或其他控制器管理的，因此它们没有自动伸缩、滚动更新等高级特性。
+
+3. **静态配置**：
+   - Static Pod 的配置是静态文件，通常是 JSON 或 YAML 格式，存放在节点的文件系统中。
+   - 这些配置文件不会因为 API Server 或 etcd 的故障而丢失，因此非常适合用于管理集群的核心组件。
+
+4. **自动重启**：
+   - 如果 Static Pod 崩溃或被删除，kubelet 会根据配置文件自动重新创建它们，保证这些关键组件的高可用性。
+
+### 创建 Static Pod
+
+要创建一个 Static Pod，你需要在节点的特定目录中（通常是 `/etc/kubernetes/manifests`）创建一个包含 Pod 定义的 YAML 文件。以下是一个示例：
+
+```yaml
+# 文件路径：/etc/kubernetes/manifests/static-pod-example.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: static-pod-example
+  namespace: kube-system
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+```
+
+将上述 YAML 文件保存到节点的 `/etc/kubernetes/manifests` 目录中后，kubelet 会自动检测到该文件并创建对应的 Pod。
+
+### 使用场景
+
+Static Pod 通常用于以下场景：
+
+1. **Kubernetes 控制平面组件**：
+   - 部署和管理 Kubernetes 控制平面组件（如 etcd、kube-apiserver、kube-controller-manager 和 kube-scheduler），这些组件必须在集群启动时运行，不能依赖于 Kubernetes 自身来管理。
+
+2. **集群启动和恢复**：
+   - 在集群启动或恢复过程中，使用 Static Pod 确保关键组件能够独立于 Kubernetes API Server 和 etcd 正常启动。
+
+3. **简化的节点管理**：
+   - 在一些简化的集群管理方案中，可能会使用 Static Pod 来运行节点级别的服务或代理，而不依赖于 Kubernetes 控制器。
+
+### 监控和管理
+
+由于 Static Pod 由 kubelet 直接管理，因此它们的一些管理和监控操作与普通 Pod 略有不同：
+
+- **日志查看**：你仍然可以使用 `kubectl logs` 命令查看 Static Pod 的日志。
+- **状态检查**：可以使用 `kubectl get pod -n kube-system` 命令查看 Static Pod 的状态。
+- **更新 Pod**：要更新 Static Pod，需要手动编辑对应的 YAML 文件，kubelet 会自动检测到文件的变化并重新创建 Pod。
+
+Static Pod 是 Kubernetes 提供的一种灵活机制，用于确保关键组件的高可用性和独立性，是集群稳定运行的关键保障之一。

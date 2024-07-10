@@ -199,6 +199,82 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <p>两者结合使用，可以在 Kubernetes 集群中提供强大的资源管理能力，确保资源的公平分配和高效使用。</p>
 <h2 id="k8s技能图谱" tabindex="-1"><a class="header-anchor" href="#k8s技能图谱"><span>k8s技能图谱</span></a></h2>
 <figure><img src="/assets/images/k8s技能图谱.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
+<h2 id="静态pod" tabindex="-1"><a class="header-anchor" href="#静态pod"><span>静态pod</span></a></h2>
+<p><code v-pre>Static Pod</code> 是 Kubernetes 中的一种特殊类型的 Pod，它由 kubelet 直接管理，而不是通过 Kubernetes API Server 来创建和管理。Static Pod 通常用于集群管理工具（如 Kubernetes 本身）的部署和管理，尤其是在 Kubernetes 控制平面组件（如 etcd、kube-apiserver、kube-controller-manager 和 kube-scheduler）自身的管理中。</p>
+<h3 id="static-pod-的特点" tabindex="-1"><a class="header-anchor" href="#static-pod-的特点"><span>Static Pod 的特点</span></a></h3>
+<ol>
+<li>
+<p><strong>由 kubelet 管理</strong>：</p>
+<ul>
+<li>Static Pod 由运行在节点上的 kubelet 直接管理，不需要 API Server 的参与。</li>
+<li>kubelet 会定期扫描特定的目录（通常是 <code v-pre>/etc/kubernetes/manifests</code>）中的 Pod 定义文件，并根据这些文件创建和管理 Pod。</li>
+</ul>
+</li>
+<li>
+<p><strong>没有 ReplicaSet 或 Deployment</strong>：</p>
+<ul>
+<li>Static Pod 不是通过 Deployment、ReplicaSet 或其他控制器管理的，因此它们没有自动伸缩、滚动更新等高级特性。</li>
+</ul>
+</li>
+<li>
+<p><strong>静态配置</strong>：</p>
+<ul>
+<li>Static Pod 的配置是静态文件，通常是 JSON 或 YAML 格式，存放在节点的文件系统中。</li>
+<li>这些配置文件不会因为 API Server 或 etcd 的故障而丢失，因此非常适合用于管理集群的核心组件。</li>
+</ul>
+</li>
+<li>
+<p><strong>自动重启</strong>：</p>
+<ul>
+<li>如果 Static Pod 崩溃或被删除，kubelet 会根据配置文件自动重新创建它们，保证这些关键组件的高可用性。</li>
+</ul>
+</li>
+</ol>
+<h3 id="创建-static-pod" tabindex="-1"><a class="header-anchor" href="#创建-static-pod"><span>创建 Static Pod</span></a></h3>
+<p>要创建一个 Static Pod，你需要在节点的特定目录中（通常是 <code v-pre>/etc/kubernetes/manifests</code>）创建一个包含 Pod 定义的 YAML 文件。以下是一个示例：</p>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># 文件路径：/etc/kubernetes/manifests/static-pod-example.yaml</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">Pod</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">static-pod-example</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">kube-system</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  containers</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">  - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">nginx</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    image</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">nginx:latest</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    ports</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">containerPort</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">80</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>将上述 YAML 文件保存到节点的 <code v-pre>/etc/kubernetes/manifests</code> 目录中后，kubelet 会自动检测到该文件并创建对应的 Pod。</p>
+<h3 id="使用场景-2" tabindex="-1"><a class="header-anchor" href="#使用场景-2"><span>使用场景</span></a></h3>
+<p>Static Pod 通常用于以下场景：</p>
+<ol>
+<li>
+<p><strong>Kubernetes 控制平面组件</strong>：</p>
+<ul>
+<li>部署和管理 Kubernetes 控制平面组件（如 etcd、kube-apiserver、kube-controller-manager 和 kube-scheduler），这些组件必须在集群启动时运行，不能依赖于 Kubernetes 自身来管理。</li>
+</ul>
+</li>
+<li>
+<p><strong>集群启动和恢复</strong>：</p>
+<ul>
+<li>在集群启动或恢复过程中，使用 Static Pod 确保关键组件能够独立于 Kubernetes API Server 和 etcd 正常启动。</li>
+</ul>
+</li>
+<li>
+<p><strong>简化的节点管理</strong>：</p>
+<ul>
+<li>在一些简化的集群管理方案中，可能会使用 Static Pod 来运行节点级别的服务或代理，而不依赖于 Kubernetes 控制器。</li>
+</ul>
+</li>
+</ol>
+<h3 id="监控和管理" tabindex="-1"><a class="header-anchor" href="#监控和管理"><span>监控和管理</span></a></h3>
+<p>由于 Static Pod 由 kubelet 直接管理，因此它们的一些管理和监控操作与普通 Pod 略有不同：</p>
+<ul>
+<li><strong>日志查看</strong>：你仍然可以使用 <code v-pre>kubectl logs</code> 命令查看 Static Pod 的日志。</li>
+<li><strong>状态检查</strong>：可以使用 <code v-pre>kubectl get pod -n kube-system</code> 命令查看 Static Pod 的状态。</li>
+<li><strong>更新 Pod</strong>：要更新 Static Pod，需要手动编辑对应的 YAML 文件，kubelet 会自动检测到文件的变化并重新创建 Pod。</li>
+</ul>
+<p>Static Pod 是 Kubernetes 提供的一种灵活机制，用于确保关键组件的高可用性和独立性，是集群稳定运行的关键保障之一。</p>
 </div></template>
 
 
