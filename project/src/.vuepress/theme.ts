@@ -58,7 +58,11 @@ export default hopeTheme({
     //   provider: "Waline",
     //   serverURL: "https://waline-comment.vuejs.press",
     // },
-
+    searchPro: {
+      // 配置选项
+      indexContent: true,
+      autoSuggestions: false
+    },
     components: {
       components: ["Badge", "VPCard"],
     },

@@ -9,13 +9,6 @@ export default defineUserConfig({
   description: "MouseSun846的知识笔记",
 
   theme,
-  plugins: [
-    searchProPlugin({
-      // 配置选项
-      indexContent: true,
-      autoSuggestions: false
-    }),
-  ],
   // 和 PWA 一起启用
   // shouldPrefetch: false,
 });

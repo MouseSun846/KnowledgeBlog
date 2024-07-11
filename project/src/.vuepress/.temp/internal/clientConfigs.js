@@ -8,8 +8,8 @@ import * as clientConfig6 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm
 import * as clientConfig7 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/@vuepress+plugin-copy-code@2.0.0-rc.34_vuepress@2.0.0-rc.13/node_modules/@vuepress/plugin-copy-code/lib/client/config.js'
 import * as clientConfig8 from 'D:/Code/knowledgeblob/project/src/.vuepress/.temp/md-enhance/config.js'
 import * as clientConfig9 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/@vuepress+plugin-photo-swipe@2.0.0-rc.34_vuepress@2.0.0-rc.13/node_modules/@vuepress/plugin-photo-swipe/lib/client/config.js'
-import * as clientConfig10 from 'D:/Code/knowledgeblob/project/src/.vuepress/.temp/theme-hope/config.js'
-import * as clientConfig11 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-plugin-search-pro@2.0.0-rc.50_vuepress@2.0.0-rc.13/node_modules/vuepress-plugin-search-pro/lib/client/config.js'
+import * as clientConfig10 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-plugin-search-pro@2.0.0-rc.50_vuepress@2.0.0-rc.13/node_modules/vuepress-plugin-search-pro/lib/client/config.js'
+import * as clientConfig11 from 'D:/Code/knowledgeblob/project/src/.vuepress/.temp/theme-hope/config.js'
 
 export const clientConfigs = [
   clientConfig0,
