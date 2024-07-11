@@ -1,3 +1,3 @@
-      export const typesMap = {"article":{"/":{"path":"/article/","indexes":[4,0,5,1,2,7,3,6]}},"star":{"/":{"path":"/star/","indexes":[]}},"timeline":{"/":{"path":"/timeline/","indexes":[4,0,5,1,2,7,3,6]}}};
+      export const typesMap = {"article":{"/":{"path":"/article/","indexes":[6,0,7,1,2,5,3,4]}},"star":{"/":{"path":"/star/","indexes":[]}},"timeline":{"/":{"path":"/timeline/","indexes":[6,0,7,1,2,5,3,4]}}};
       
       

@@ -268,3 +268,86 @@ Static Pod 通常用于以下场景：
 - **更新 Pod**：要更新 Static Pod，需要手动编辑对应的 YAML 文件，kubelet 会自动检测到文件的变化并重新创建 Pod。
 
 Static Pod 是 Kubernetes 提供的一种灵活机制，用于确保关键组件的高可用性和独立性，是集群稳定运行的关键保障之一。
+
+
+## Taint
+
+Taint 是 Kubernetes 中的一种机制，用于限制 Pod 在节点上运行的条件。Taint 可以应用于节点，并指定一个键值对，用于限制 Pod 在节点上运行的条件。
+
+### Taint 机制
+
+Taint 是应用在节点上的属性，表示这个节点对某些 Pod 来说是不合适的。每个 Taint 由三个部分组成：
+- **键（Key）**：标识 Taint 的名称。
+- **值（Value）**：标识 Taint 的具体值。
+- **效果（Effect）**：标识 Taint 的作用方式。常见的效果有三种：
+  - `NoSchedule`：新的 Pod 不会被调度到这个节点上。
+  - `PreferNoSchedule`：尽量避免将新的 Pod 调度到这个节点上，但如果没有其他合适的节点，也可能会调度。
+  - `NoExecute`：已经运行在这个节点上的 Pod 会被驱逐，新 Pod 也不会被调度到这个节点上。
+
+* 节点设置taint
+
+  ```
+  kubectl taint no minikube level=high:NoSchedule
+
+  ```
+
+* 移除 Taint
+
+  ```sh
+  kubectl taint no minikube level=high:NoSchedule-
+  ```  
+
+* Pod设置toleration
+  ```
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nginx
+  spec:
+    replicas: 1
+    selector: 
+      matchLabels: 
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+          - name: nginx
+            command: ["python3"]
+            args: ["-m", "http.server", "9999"]        
+            image: "registry.cnbita.com:5000/wangshi/python:3.10"
+            imagePullPolicy: IfNotPresent
+            ports:
+              - name: http
+                containerPort: 80
+                protocol: TCP
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits: 
+                cpu: 500m
+                memory: 256Mi
+        tolerations: 
+          - key: "level"
+            operator: "Equal"
+            value: "high"
+            effect: "NoSchedule"
+  ```        
+
+上述配置说明pod能够容忍节点设置taint的level=high:NoSchedule，如果pod不设置亲和性tolerations，则无法进行部署。如下所示：
+
+  ```
+  Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                              node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+  Events:
+    Type     Reason            Age    From               Message
+    ----     ------            ----   ----               -------
+    Warning  FailedScheduling  3m57s  default-scheduler  0/1 nodes are available: 1 node(s) had untolerated taint {level: high}. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling..
+  ```  
+
+
+
+  在 Kubernetes 中，`taint` 是用于节点管理的机制，通过标记节点来影响 Pod 的调度。Taints 可以防止某些 Pod 调度到特定节点上，除非这些 Pod 具有相应的 `toleration`。这种机制有助于确保工作负载在集群中得到更好地分布和隔离。

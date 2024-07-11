@@ -275,6 +275,78 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <li><strong>更新 Pod</strong>：要更新 Static Pod，需要手动编辑对应的 YAML 文件，kubelet 会自动检测到文件的变化并重新创建 Pod。</li>
 </ul>
 <p>Static Pod 是 Kubernetes 提供的一种灵活机制，用于确保关键组件的高可用性和独立性，是集群稳定运行的关键保障之一。</p>
+<h2 id="taint" tabindex="-1"><a class="header-anchor" href="#taint"><span>Taint</span></a></h2>
+<p>Taint 是 Kubernetes 中的一种机制，用于限制 Pod 在节点上运行的条件。Taint 可以应用于节点，并指定一个键值对，用于限制 Pod 在节点上运行的条件。</p>
+<h3 id="taint-机制" tabindex="-1"><a class="header-anchor" href="#taint-机制"><span>Taint 机制</span></a></h3>
+<p>Taint 是应用在节点上的属性，表示这个节点对某些 Pod 来说是不合适的。每个 Taint 由三个部分组成：</p>
+<ul>
+<li><strong>键（Key）</strong>：标识 Taint 的名称。</li>
+<li><strong>值（Value）</strong>：标识 Taint 的具体值。</li>
+<li><strong>效果（Effect）</strong>：标识 Taint 的作用方式。常见的效果有三种：
+<ul>
+<li><code v-pre>NoSchedule</code>：新的 Pod 不会被调度到这个节点上。</li>
+<li><code v-pre>PreferNoSchedule</code>：尽量避免将新的 Pod 调度到这个节点上，但如果没有其他合适的节点，也可能会调度。</li>
+<li><code v-pre>NoExecute</code>：已经运行在这个节点上的 Pod 会被驱逐，新 Pod 也不会被调度到这个节点上。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<p>节点设置taint</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>kubectl taint no minikube level=high:NoSchedule</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
+<li>
+<p>移除 Taint</p>
+<div class="language-sh line-numbers-mode" data-highlighter="shiki" data-ext="sh" data-title="sh" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">kubectl</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> taint</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> no</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> minikube</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> level=high:NoSchedule-</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
+<li>
+<p>Pod设置toleration</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>apiVersion: apps/v1</span></span>
+<span class="line"><span>kind: Deployment</span></span>
+<span class="line"><span>metadata:</span></span>
+<span class="line"><span>  name: nginx</span></span>
+<span class="line"><span>spec:</span></span>
+<span class="line"><span>  replicas: 1</span></span>
+<span class="line"><span>  selector: </span></span>
+<span class="line"><span>    matchLabels: </span></span>
+<span class="line"><span>      app: nginx</span></span>
+<span class="line"><span>  template:</span></span>
+<span class="line"><span>    metadata:</span></span>
+<span class="line"><span>      labels:</span></span>
+<span class="line"><span>        app: nginx</span></span>
+<span class="line"><span>    spec:</span></span>
+<span class="line"><span>      containers:</span></span>
+<span class="line"><span>        - name: nginx</span></span>
+<span class="line"><span>          command: ["python3"]</span></span>
+<span class="line"><span>          args: ["-m", "http.server", "9999"]        </span></span>
+<span class="line"><span>          image: "registry.cnbita.com:5000/wangshi/python:3.10"</span></span>
+<span class="line"><span>          imagePullPolicy: IfNotPresent</span></span>
+<span class="line"><span>          ports:</span></span>
+<span class="line"><span>            - name: http</span></span>
+<span class="line"><span>              containerPort: 80</span></span>
+<span class="line"><span>              protocol: TCP</span></span>
+<span class="line"><span>          resources:</span></span>
+<span class="line"><span>            requests:</span></span>
+<span class="line"><span>              cpu: 100m</span></span>
+<span class="line"><span>              memory: 128Mi</span></span>
+<span class="line"><span>            limits: </span></span>
+<span class="line"><span>              cpu: 500m</span></span>
+<span class="line"><span>              memory: 256Mi</span></span>
+<span class="line"><span>      tolerations: </span></span>
+<span class="line"><span>        - key: "level"</span></span>
+<span class="line"><span>          operator: "Equal"</span></span>
+<span class="line"><span>          value: "high"</span></span>
+<span class="line"><span>          effect: "NoSchedule"</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></li>
+</ul>
+<p>上述配置说明pod能够容忍节点设置taint的level=high:NoSchedule，如果pod不设置亲和性tolerations，则无法进行部署。如下所示：</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s</span></span>
+<span class="line"><span>                            node.kubernetes.io/unreachable:NoExecute op=Exists for 300s</span></span>
+<span class="line"><span>Events:</span></span>
+<span class="line"><span>  Type     Reason            Age    From               Message</span></span>
+<span class="line"><span>  ----     ------            ----   ----               -------</span></span>
+<span class="line"><span>  Warning  FailedScheduling  3m57s  default-scheduler  0/1 nodes are available: 1 node(s) had untolerated taint {level: high}. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling..</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>在 Kubernetes 中，<code v-pre>taint</code> 是用于节点管理的机制，通过标记节点来影响 Pod 的调度。Taints 可以防止某些 Pod 调度到特定节点上，除非这些 Pod 具有相应的 <code v-pre>toleration</code>。这种机制有助于确保工作负载在集群中得到更好地分布和隔离。</p>
 </div></template>
 
 
