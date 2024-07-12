@@ -347,6 +347,102 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <span class="line"><span>  ----     ------            ----   ----               -------</span></span>
 <span class="line"><span>  Warning  FailedScheduling  3m57s  default-scheduler  0/1 nodes are available: 1 node(s) had untolerated taint {level: high}. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling..</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>在 Kubernetes 中，<code v-pre>taint</code> 是用于节点管理的机制，通过标记节点来影响 Pod 的调度。Taints 可以防止某些 Pod 调度到特定节点上，除非这些 Pod 具有相应的 <code v-pre>toleration</code>。这种机制有助于确保工作负载在集群中得到更好地分布和隔离。</p>
+<h2 id="无头服务-headless-services" tabindex="-1"><a class="header-anchor" href="#无头服务-headless-services"><span>无头服务（Headless Services）</span></a></h2>
+<p>在 Kubernetes 中，Headless Service 是一种特殊类型的 Service，不会分配集群 IP（ClusterIP）。这种服务类型主要用于暴露 StatefulSet 的每个 Pod，并且允许直接访问每个 Pod。下面是对 Kubernetes Headless Service 的详细介绍：</p>
+<h3 id="headless-service-的特点" tabindex="-1"><a class="header-anchor" href="#headless-service-的特点"><span>Headless Service 的特点</span></a></h3>
+<ol>
+<li>
+<p><strong>没有 Cluster IP</strong>：</p>
+<ul>
+<li>与普通的 Kubernetes Service 不同，Headless Service 不会为服务分配一个 Cluster IP。它通过将 <code v-pre>ClusterIP</code> 字段设置为 <code v-pre>None</code> 来实现这一点。</li>
+</ul>
+</li>
+<li>
+<p><strong>直接访问 Pod</strong>：</p>
+<ul>
+<li>Headless Service 允许客户端直接访问服务后端的每个 Pod，而不是通过负载均衡器来访问。这对于需要直接与特定 Pod 进行通信的场景非常有用，例如 StatefulSet 中的数据库分片或有状态应用。</li>
+</ul>
+</li>
+<li>
+<p><strong>DNS 解析</strong>：</p>
+<ul>
+<li>Headless Service 会为每个 Pod 创建一个 DNS 记录，这样客户端可以通过 DNS 名称直接访问特定的 Pod。对于 StatefulSet，每个 Pod 都有一个稳定的 DNS 名称。</li>
+</ul>
+</li>
+</ol>
+<h3 id="使用场景-3" tabindex="-1"><a class="header-anchor" href="#使用场景-3"><span>使用场景</span></a></h3>
+<p>Headless Service 主要用于以下几种场景：</p>
+<ol>
+<li>
+<p><strong>StatefulSet</strong>：</p>
+<ul>
+<li>StatefulSet 通常用于部署有状态应用，例如数据库集群或分布式文件系统。Headless Service 允许这些有状态应用中的各个 Pod 直接相互访问。</li>
+</ul>
+</li>
+<li>
+<p><strong>自定义服务发现</strong>：</p>
+<ul>
+<li>在某些情况下，应用需要自定义的服务发现机制，而不是 Kubernetes 提供的负载均衡。Headless Service 允许应用自行管理和发现服务实例。</li>
+</ul>
+</li>
+</ol>
+<h3 id="headless-service-的定义示例" tabindex="-1"><a class="header-anchor" href="#headless-service-的定义示例"><span>Headless Service 的定义示例</span></a></h3>
+<p>以下是一个 Headless Service 的 YAML 定义示例：</p>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">Service</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">headless-service</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">default</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  clusterIP</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">None</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  selector</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    app</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-app</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  ports</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">  - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">http</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    port</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">80</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    targetPort</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">8080</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这个示例定义了一个名为 <code v-pre>headless-service</code> 的服务，没有 <code v-pre>ClusterIP</code>。它选择了带有标签 <code v-pre>app: my-app</code> 的 Pod，并将流量从服务的 80 端口转发到 Pod 的 8080 端口。</p>
+<h3 id="statefulset-与-headless-service-的结合" tabindex="-1"><a class="header-anchor" href="#statefulset-与-headless-service-的结合"><span>StatefulSet 与 Headless Service 的结合</span></a></h3>
+<p>以下是一个使用 Headless Service 的 StatefulSet 示例：</p>
+<h4 id="定义-headless-service" tabindex="-1"><a class="header-anchor" href="#定义-headless-service"><span>定义 Headless Service</span></a></h4>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">Service</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-stateful-service</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">default</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  clusterIP</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">None</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  selector</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    app</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-stateful-app</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  ports</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">  - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">http</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    port</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">80</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    targetPort</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">8080</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h4 id="定义-statefulset" tabindex="-1"><a class="header-anchor" href="#定义-statefulset"><span>定义 StatefulSet</span></a></h4>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">apps/v1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">StatefulSet</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-stateful-app</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  namespace</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">default</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  serviceName</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"my-stateful-service"</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  replicas</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">3</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  selector</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    matchLabels</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      app</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-stateful-app</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">  template</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      labels</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">        app</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-stateful-app</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">    spec</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">      containers</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">      - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-container</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">        image</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">my-image</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">        ports</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">        - </span><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">containerPort</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">8080</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>在这个例子中，<code v-pre>my-stateful-service</code> 是一个 Headless Service，它与 <code v-pre>my-stateful-app</code> StatefulSet 结合使用。每个 StatefulSet Pod 都有一个稳定的 DNS 名称，例如 <code v-pre>my-stateful-app-0.my-stateful-service.default.svc.cluster.local</code>。</p>
+<h3 id="总结" tabindex="-1"><a class="header-anchor" href="#总结"><span>总结</span></a></h3>
+<p>Headless Service 是 Kubernetes 中的一种特殊服务类型，适用于需要直接访问每个 Pod 的场景。它通过不分配 Cluster IP 来实现这一点，并为每个 Pod 提供稳定的 DNS 记录。Headless Service 通常用于有状态应用和自定义服务发现场景，尤其是在 StatefulSet 中。</p>
 </div></template>
 
 
