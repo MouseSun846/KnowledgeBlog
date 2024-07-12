@@ -8,7 +8,12 @@ export default hopeTheme({
   author: {
     name: "MouseSun",
     url: "https://github.com/MouseSun846",
+    email: "",
   },
+
+  contributors: false,
+
+  editLink: false,
 
   iconAssets: "fontawesome-with-brands",
 
