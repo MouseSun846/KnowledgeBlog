@@ -286,6 +286,63 @@
 </ol>
 <h3 id="总结-2" tabindex="-1"><a class="header-anchor" href="#总结-2"><span>总结</span></a></h3>
 <p>VXLAN通过在现有的三层IP网络上创建虚拟二层网络，实现了大规模的数据中心和云环境中的网络虚拟化和扩展。VTEP作为VXLAN架构中的关键组件，负责隧道的端点操作，完成VXLAN包的封装和解封装。VXLAN和VTEP的结合，使得跨越不同物理位置的虚拟机能够像在同一个二层网络中一样进行通信，从而实现了高效、灵活和可扩展的网络架构。</p>
+<h2 id="ip-neigh-show" tabindex="-1"><a class="header-anchor" href="#ip-neigh-show"><span>ip neigh show</span></a></h2>
+<p><code v-pre>ip neigh show dev flannel.1</code>命令用于显示指定网络设备（在这里是<code v-pre>flannel.1</code>）的邻居表项。邻居表存储了网络设备的邻居节点的信息，包括其IP地址和MAC地址。</p>
+<p>在使用<code v-pre>flannel</code>的Kubernetes集群中，<code v-pre>flannel.1</code>通常是用于Overlay网络的设备接口。运行这个命令会列出该接口的所有邻居节点的信息。每个邻居节点条目通常包含以下信息：</p>
+<ul>
+<li><strong>IP地址</strong>：邻居节点的IP地址。</li>
+<li><strong>MAC地址</strong>：邻居节点的MAC地址。</li>
+<li><strong>状态</strong>：邻居节点的状态，例如<code v-pre>REACHABLE</code>（可达）、<code v-pre>STALE</code>（陈旧）、<code v-pre>DELAY</code>（延迟）、<code v-pre>PROBE</code>（探测）等。</li>
+</ul>
+<p>例如，运行<code v-pre>ip neigh show dev flannel.1</code>可能得到以下输出：</p>
+<div class="language-plaintext line-numbers-mode" data-highlighter="shiki" data-ext="plaintext" data-title="plaintext" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>10.244.2.1 dev flannel.1 lladdr 0a:58:0a:f4:02:01 REACHABLE</span></span>
+<span class="line"><span>10.244.2.2 dev flannel.1 lladdr 0a:58:0a:f4:02:02 STALE</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><p>在这个例子中：</p>
+<ul>
+<li><strong>10.244.2.1</strong> 是一个邻居节点的IP地址，<strong>0a:58:0a:f4:02:01</strong> 是其MAC地址，状态是<strong>REACHABLE</strong>。</li>
+<li><strong>10.244.2.2</strong> 是另一个邻居节点的IP地址，<strong>0a:58:0a:f4:02:02</strong> 是其MAC地址，状态是<strong>STALE</strong>。</li>
+</ul>
+<h3 id="总结-3" tabindex="-1"><a class="header-anchor" href="#总结-3"><span>总结</span></a></h3>
+<p><code v-pre>ip neigh show dev flannel.1</code>命令用于查看指定设备（如<code v-pre>flannel.1</code>）的邻居节点信息，帮助管理员了解当前网络设备与其他节点的连接状态和MAC地址映射情况。这对于排查网络问题和管理网络连接非常有用。</p>
+<h2 id="bridge-fdb-show" tabindex="-1"><a class="header-anchor" href="#bridge-fdb-show"><span>bridge fdb show</span></a></h2>
+<p><code v-pre>bridge fdb show</code>命令用于显示Linux桥接设备的前向数据库（Forwarding Database，FDB）。FDB记录了MAC地址与网络接口的映射关系，帮助桥接设备确定数据帧的转发路径。通过这个命令，可以查看桥接设备当前的MAC地址表，了解哪些MAC地址通过哪些接口连接。</p>
+<h3 id="示例输出" tabindex="-1"><a class="header-anchor" href="#示例输出"><span>示例输出</span></a></h3>
+<p>运行<code v-pre>bridge fdb show</code>命令的示例输出可能如下所示：</p>
+<div class="language-plaintext line-numbers-mode" data-highlighter="shiki" data-ext="plaintext" data-title="plaintext" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>33:33:00:00:00:01 dev ens3 self permanent</span></span>
+<span class="line"><span>01:00:5e:00:00:01 dev ens3 self permanent</span></span>
+<span class="line"><span>02:42:ac:11:00:02 dev docker0 vlan 1 master docker0</span></span>
+<span class="line"><span>02:42:ac:11:00:03 dev docker0 vlan 1 master docker0</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="输出字段解释" tabindex="-1"><a class="header-anchor" href="#输出字段解释"><span>输出字段解释</span></a></h3>
+<ul>
+<li><strong>MAC地址</strong>：如<code v-pre>33:33:00:00:00:01</code>，这是设备的MAC地址。</li>
+<li><strong>dev</strong>：后面跟随的是设备名，如<code v-pre>ens3</code>或<code v-pre>docker0</code>，表示该MAC地址对应的设备。</li>
+<li><strong>self</strong>：表示该条目是本地接口的MAC地址。</li>
+<li><strong>permanent</strong>：表示该条目是永久性的，而不是动态学习到的。</li>
+<li><strong>vlan</strong>：VLAN ID，表示该条目所属的VLAN。</li>
+<li><strong>master</strong>：表示该设备所属的主设备。</li>
+</ul>
+<h3 id="常用选项" tabindex="-1"><a class="header-anchor" href="#常用选项"><span>常用选项</span></a></h3>
+<ul>
+<li><code v-pre>bridge fdb show [dev DEVICE]</code>：显示特定设备的FDB条目。例如，<code v-pre>bridge fdb show dev br0</code>显示设备<code v-pre>br0</code>的FDB。</li>
+<li><code v-pre>bridge fdb show [br BRIDGE]</code>：显示特定桥接设备的FDB条目。</li>
+</ul>
+<h3 id="使用示例" tabindex="-1"><a class="header-anchor" href="#使用示例"><span>使用示例</span></a></h3>
+<ol>
+<li>
+<p><strong>显示所有桥接设备的FDB条目</strong>：</p>
+<div class="language-sh line-numbers-mode" data-highlighter="shiki" data-ext="sh" data-title="sh" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">bridge</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> fdb</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> show</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
+<li>
+<p><strong>显示特定设备的FDB条目</strong>：</p>
+<div class="language-sh line-numbers-mode" data-highlighter="shiki" data-ext="sh" data-title="sh" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">bridge</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> fdb</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> show</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> dev</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> br0</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
+<li>
+<p><strong>显示特定桥接设备的FDB条目</strong>：</p>
+<div class="language-sh line-numbers-mode" data-highlighter="shiki" data-ext="sh" data-title="sh" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">bridge</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> fdb</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> show</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> br</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> br0</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
+</ol>
+<h3 id="总结-4" tabindex="-1"><a class="header-anchor" href="#总结-4"><span>总结</span></a></h3>
+<p><code v-pre>bridge fdb show</code>命令用于查看Linux桥接设备的前向数据库，帮助管理员了解网络中MAC地址的分布情况和转发路径。这对于网络故障排查和性能优化非常有用。</p>
 </div></template>
 
 
