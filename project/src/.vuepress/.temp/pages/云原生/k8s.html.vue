@@ -443,6 +443,35 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>在这个例子中，<code v-pre>my-stateful-service</code> 是一个 Headless Service，它与 <code v-pre>my-stateful-app</code> StatefulSet 结合使用。每个 StatefulSet Pod 都有一个稳定的 DNS 名称，例如 <code v-pre>my-stateful-app-0.my-stateful-service.default.svc.cluster.local</code>。</p>
 <h3 id="总结" tabindex="-1"><a class="header-anchor" href="#总结"><span>总结</span></a></h3>
 <p>Headless Service 是 Kubernetes 中的一种特殊服务类型，适用于需要直接访问每个 Pod 的场景。它通过不分配 Cluster IP 来实现这一点，并为每个 Pod 提供稳定的 DNS 记录。Headless Service 通常用于有状态应用和自定义服务发现场景，尤其是在 StatefulSet 中。</p>
+<h2 id="kubelet的hairpin-mode" tabindex="-1"><a class="header-anchor" href="#kubelet的hairpin-mode"><span>Kubelet的<code v-pre>hairpin-mode</code></span></a></h2>
+<p>Kubelet 的 <code v-pre>hairpin-mode</code> 是一个配置选项，它决定了 Pod 内的容器是否能够通过 Pod 的 IP 访问自身以及同一 Pod 中的其他容器的服务。这种访问模式被称为“发夹模式（Hairpin Mode）”。具体来说，<code v-pre>hairpin-mode</code> 的作用是在容器网络接口上设置发夹规则，使得流量可以从容器发出后，又从同一个网络接口回到容器内部。</p>
+<h3 id="hairpin-mode-的工作原理" tabindex="-1"><a class="header-anchor" href="#hairpin-mode-的工作原理"><span>Hairpin Mode 的工作原理</span></a></h3>
+<p>在发夹模式下，容器内的应用可以通过服务 IP 或者 Pod IP 访问同一 Pod 内的其他容器。这种模式主要用于以下情况：</p>
+<ul>
+<li><strong>自访问</strong>：容器需要通过 Pod IP 访问自己，例如某些服务需要通过自身的外部 IP 进行健康检查。</li>
+<li><strong>内部通信</strong>：同一个 Pod 内的多个容器之间的通信，通过 Pod 的网络接口实现内循环。</li>
+</ul>
+<h3 id="配置-hairpin-mode" tabindex="-1"><a class="header-anchor" href="#配置-hairpin-mode"><span>配置 <code v-pre>hairpin-mode</code></span></a></h3>
+<p>Kubelet 提供了几个选项来配置 <code v-pre>hairpin-mode</code>：</p>
+<ol>
+<li><strong><code v-pre>hairpin-veth</code></strong>：启用发夹模式，这是默认模式。Kubelet 会在创建容器网络接口时启用发夹规则。</li>
+<li><strong><code v-pre>promiscuous-bridge</code></strong>：使用混杂模式的网桥。这种模式在性能上可能有一些开销，但在某些网络插件或环境下可能是必要的。</li>
+<li><strong><code v-pre>none</code></strong>：禁用发夹模式。这种模式下，容器无法通过 Pod IP 访问自身或同一 Pod 内的其他容器。</li>
+</ol>
+<h3 id="配置示例-2" tabindex="-1"><a class="header-anchor" href="#配置示例-2"><span>配置示例</span></a></h3>
+<p>要配置 <code v-pre>hairpin-mode</code>，可以在 Kubelet 的启动参数中设置。例如，在 kubelet 配置文件中：</p>
+<div class="language-yaml line-numbers-mode" data-highlighter="shiki" data-ext="yaml" data-title="yaml" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">apiVersion</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">kubelet.config.k8s.io/v1beta1</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">kind</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">KubeletConfiguration</span></span>
+<span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#E06C75">hairpinMode</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">hairpin-veth</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>或者在启动 Kubelet 时通过命令行参数：</p>
+<div class="language-sh line-numbers-mode" data-highlighter="shiki" data-ext="sh" data-title="sh" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">kubelet</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> --hairpin-mode=hairpin-veth</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="使用场景-4" tabindex="-1"><a class="header-anchor" href="#使用场景-4"><span>使用场景</span></a></h3>
+<ul>
+<li><strong>服务自身健康检查</strong>：某些服务需要通过 Pod IP 对自身进行健康检查。</li>
+<li><strong>同一 Pod 内的容器通信</strong>：Pod 内部的不同容器通过 Pod IP 进行通信，简化网络配置。</li>
+</ul>
+<h3 id="总结-1" tabindex="-1"><a class="header-anchor" href="#总结-1"><span>总结</span></a></h3>
+<p><code v-pre>hairpin-mode</code> 是 Kubelet 的一个重要配置选项，用于控制容器是否能够通过 Pod IP 进行自访问和内部通信。根据具体的应用场景和需求，可以选择适当的发夹模式配置。常见的选择是默认的 <code v-pre>hairpin-veth</code> 模式，它能够在大多数场景下提供良好的性能和功能支持。</p>
 </div></template>
 
 
