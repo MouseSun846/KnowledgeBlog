@@ -500,3 +500,138 @@ kubelet --hairpin-mode=hairpin-veth
 ### 总结
 
 `hairpin-mode` 是 Kubelet 的一个重要配置选项，用于控制容器是否能够通过 Pod IP 进行自访问和内部通信。根据具体的应用场景和需求，可以选择适当的发夹模式配置。常见的选择是默认的 `hairpin-veth` 模式，它能够在大多数场景下提供良好的性能和功能支持。
+
+## 资源短缺
+
+QoS 划分的主要应用场景，是当宿主机资源紧张的时候，kubelet 对 Pod 进行 Eviction（即资源回收）时需要用到的。
+
+具体地说，当 Kubernetes 所管理的宿主机上不可压缩资源短缺时，就有可能触发 Eviction。比如，可用内存（memory.available）、可用的宿主机磁盘空间（nodefs.available），以及容器运行时镜像存储空间（imagefs.available）等等。
+
+目前，Kubernetes 为你设置的 Eviction 的默认阈值如下所示：
+
+```
+memory.available<100Mi
+nodefs.available<10%
+nodefs.inodesFree<5%
+imagefs.available<15%
+```
+
+上述各个触发条件在 kubelet 里都是可配置的
+```
+kubelet --eviction-hard=imagefs.available<10%,memory.available<500Mi,nodefs.available<5%,nodefs.inodesFree<5% --eviction-soft=imagefs.available<30%,nodefs.available<10% --eviction-soft-grace-period=imagefs.available=2m,nodefs.available=2m --eviction-max-pod-grace-period=600
+```
+
+
+Eviction 在 Kubernetes 里其实分为 Soft 和 Hard 两种模式。
+
+其中，Soft Eviction 允许你为 Eviction 过程设置一段“优雅时间”，比如上面例子里的 imagefs.available=2m，就意味着当 imagefs 不足的阈值达到 2 分钟之后，kubelet 才会开始 Eviction 的过程。
+
+而 Hard Eviction 模式下，Eviction 过程就会在阈值达到之后立刻开始。
+
+> Kubernetes 计算 Eviction 阈值的数据来源，主要依赖于从 Cgroups 读取到的值，以及使用 cAdvisor 监控到的数据。
+
+
+Pod 的 QoS 类别：  Guaranteed > Burstable > BestEffort
+
+Kubernetes 会保证只有当 Guaranteed 类别的 Pod 的资源使用量超过了其 limits 的限制，或者宿主机本身正处于 Memory Pressure 状态时，Guaranteed 的 Pod 才可能被选中进行 Eviction 操作。
+
+
+## 如何能够让 Kubernetes 的调度器尽可能地将 Pod 分布在不同机器上，避免“堆叠”呢?
+
+在 Kubernetes 中，可以通过以下几种方式配置调度策略，以尽可能地将 Pod 分布在不同的节点上，避免“堆叠”：
+
+### 1. Pod 反亲和性（Pod Anti-Affinity）
+Pod 反亲和性是一种调度约束，允许用户指定某些 Pod 不应该与其他特定 Pod 运行在同一个节点上。
+
+#### 示例
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - myapp
+          topologyKey: "kubernetes.io/hostname"
+```
+
+在这个示例中，`podAntiAffinity` 指定了具有相同标签 `app=myapp` 的 Pod 不应该被调度到相同的节点上。`topologyKey` 为 `kubernetes.io/hostname`，表示约束作用在节点级别。
+
+### 2. 节点亲和性（Node Affinity）
+Node Affinity 允许调度器根据节点标签选择合适的节点。这可以用于避免将所有 Pod 调度到相同的节点。
+
+#### 示例
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: disktype
+            operator: In
+            values:
+            - ssd
+```
+
+这个示例展示了如何使用节点标签（`disktype=ssd`）进行调度，以确保 Pod 被调度到带有特定标签的节点上。
+
+### 3. 分布式调度策略（Spread Constraints）
+Kubernetes 1.18 引入了 `TopologySpreadConstraints`，允许用户定义分布式调度策略，确保 Pod 均匀地分布在集群的不同节点上。
+
+#### 示例
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: my-container
+    image: my-image
+```
+
+在这个示例中，`topologySpreadConstraints` 指定 Pod 应该均匀地分布在不同的节点上。`maxSkew` 表示同一节点上的 Pod 数量与其他节点上的最大偏差不超过1。
+
+### 4. 自定义调度器策略（Custom Scheduler Policies）
+Kubernetes 允许使用自定义调度策略文件来自定义调度行为。例如，可以设置 `EvenPodsSpreadPriority` 来实现均匀调度。
+
+#### 示例
+自定义调度策略文件（`scheduler-policy-config.json`）：
+```json
+{
+  "kind": "Policy",
+  "apiVersion": "v1",
+  "priorities": [
+    {
+      "name": "EvenPodsSpreadPriority",
+      "weight": 1
+    }
+  ]
+}
+```
+
+启动调度器时使用该策略文件：
+```shell
+kube-scheduler --policy-config-file=scheduler-policy-config.json
+```
+
+通过配置这些策略，可以显著改善 Pod 在集群中的分布情况，避免“堆叠”问题，实现资源的更高效利用。
