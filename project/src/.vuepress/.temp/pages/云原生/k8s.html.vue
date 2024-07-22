@@ -565,6 +565,15 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>启动调度器时使用该策略文件：</p>
 <div class="language-shell line-numbers-mode" data-highlighter="shiki" data-ext="shell" data-title="shell" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">kube-scheduler</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> --policy-config-file=scheduler-policy-config.json</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>通过配置这些策略，可以显著改善 Pod 在集群中的分布情况，避免“堆叠”问题，实现资源的更高效利用。</p>
+<h2 id="kubelet如何实现-exec、logs-等接口" tabindex="-1"><a class="header-anchor" href="#kubelet如何实现-exec、logs-等接口"><span>kubelet如何实现 exec、logs 等接口</span></a></h2>
+<p>gRPC 接口调用期间，kubelet 需要跟容器项目维护一个长连接来传输数据。这种 API，我们就称之为 Streaming API。</p>
+<p>CRI shim 里对 Streaming API 的实现，依赖于一套独立的 Streaming Server 机制。</p>
+<figure><img src="/assets/images/693e0a87-d9f1-4fe5-a733-79e618b922d2.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
+<p>可以看到，当我们对一个容器执行 kubectl exec 命令的时候，这个请求首先交给 API Server，然后 API Server 就会调用 kubelet 的 Exec API。</p>
+<p>这时，kubelet 就会调用 CRI 的 Exec 接口，而负责响应这个接口的，自然就是具体的 CRI shim。</p>
+<p>但在这一步，CRI shim 并不会直接去调用后端的容器项目（比如 Docker ）来进行处理，而只会返回一个 URL 给 kubelet。这个 URL，就是该 CRI shim 对应的 Streaming Server 的地址和端口。</p>
+<p>而 kubelet 在拿到这个 URL 之后，就会把它以 Redirect 的方式返回给 API Server。所以这时候，API Server 就会通过重定向来向 Streaming Server 发起真正的 /exec 请求，与它建立长连接</p>
+<p>当然，这个 Streaming Server 本身，是需要通过使用 SIG-Node 为你维护的 Streaming API 库来实现的。并且，Streaming Server 会在 CRI shim 启动时就一起启动。此外，Stream Server 这一部分具体怎么实现，完全可以由 CRI shim 的维护者自行决定。比如，对于 Docker 项目来说，dockershim 就是直接调用 Docker 的 Exec API 来作为实现的。</p>
 </div></template>
 
 
