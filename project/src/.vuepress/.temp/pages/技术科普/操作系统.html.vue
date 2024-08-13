@@ -27,6 +27,29 @@
 </li>
 </ul>
 <p>运行该命令后，你会看到进程871的系统调用输出，直到你停止 <code v-pre>strace</code> (通常通过 <code v-pre>Ctrl+C</code>)。</p>
+<div class="hint-container tip">
+<p class="hint-container-title">top命令解释</p>
+</div>
+<figure><img src="/assets/images/038be2db-9a5c-4678-9cf4-e0a6f5018d9e.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
+<p>我们可以用上面这张图，把这些值挨个解释一下。</p>
+<p>假设一个用户程序开始运行了，那么就对应着第一个&quot;us&quot;框，&quot;us&quot;是&quot;user&quot;的缩写，代表 Linux 的用户态 CPU Usage。普通用户程序代码中，只要不是调用系统调用（System Call），这些代码的指令消耗的 CPU 就都属于&quot;us&quot;。</p>
+<p>当这个用户程序代码中调用了系统调用，比如说 read() 去读取一个文件，这时候这个用户进程就会从用户态切换到内核态。</p>
+<p>内核态 read() 系统调用在读到真正 disk 上的文件前，就会进行一些文件系统层的操作。那么这些代码指令的消耗就属于&quot;sy&quot;，这里就对应上面图里的第二个框。&quot;sy&quot;是 &quot;system&quot;的缩写，代表内核态 CPU 使用。</p>
+<p>接下来，这个 read() 系统调用会向 Linux 的 Block Layer 发出一个 I/O Request，触发一个真正的磁盘读取操作。</p>
+<p>这时候，这个进程一般会被置为 TASK_UNINTERRUPTIBLE。而 Linux 会把这段时间标示成&quot;wa&quot;，对应图中的第三个框。&quot;wa&quot;是&quot;iowait&quot;的缩写，代表等待 I/O 的时间，这里的 I/O 是指 Disk I/O。</p>
+<p>紧接着，当磁盘返回数据时，进程在内核态拿到数据，这里仍旧是内核态的 CPU 使用中的&quot;sy&quot;，也就是图中的第四个框。</p>
+<p>然后，进程再从内核态切换回用户态，在用户态得到文件数据，这里进程又回到用户态的 CPU 使用，&quot;us&quot;，对应图中第五个框。</p>
+<p>好，这里我们假设一下，这个用户进程在读取数据之后，没事可做就休眠了。并且我们可以进一步假设，这时在这个 CPU 上也没有其他需要运行的进程了，那么系统就会进入&quot;id&quot;这个步骤，也就是第六个框。&quot;id&quot;是&quot;idle&quot;的缩写，代表系统处于空闲状态。</p>
+<p>如果这时这台机器在网络收到一个网络数据包，网卡就会发出一个中断（interrupt）。相应地，CPU 会响应中断，然后进入中断服务程序。</p>
+<p>这时，CPU 就会进入&quot;hi&quot;，也就是第七个框。&quot;hi&quot;是&quot;hardware irq&quot;的缩写，代表 CPU 处理硬中断的开销。由于我们的中断服务处理需要关闭中断，所以这个硬中断的时间不能太长。</p>
+<p>但是，发生中断后的工作是必须要完成的，如果这些工作比较耗时那怎么办呢？Linux 中有一个软中断的概念（softirq），它可以完成这些耗时比较长的工作。</p>
+<p>你可以这样理解这个软中断，从网卡收到数据包的大部分工作，都是通过软中断来处理的。那么，CPU 就会进入到第八个框，&quot;si&quot;。这里&quot;si&quot;是&quot;softirq&quot;的缩写，代表 CPU 处理软中断的开销。</p>
+<p>这里你要注意，无论是&quot;hi&quot;还是&quot;si&quot;，它们的 CPU 时间都不会计入进程的 CPU 时间。这是因为本身它们在处理的时候就不属于任何一个进程。</p>
+<p>好了，通过这个场景假设，我们介绍了大部分的 Linux CPU 使用。</p>
+<p>不过，我们还剩两个类型的 CPU 使用没讲到，我想给你做个补充，一次性带你做个全面了解。这样以后你解决相关问题时，就不会再犹豫，这些值到底影不影响 CPU Cgroup 中的限制了。下面我给你具体讲一下。</p>
+<p>一个是&quot;ni&quot;，是&quot;nice&quot;的缩写，这里表示如果进程的 nice 值是正值（1-19），代表优先级比较低的进程运行时所占用的 CPU。</p>
+<p>另外一个是&quot;st&quot;，&quot;st&quot;是&quot;steal&quot;的缩写，是在虚拟机里用的一个 CPU 使用类型，表示有多少时间是被同一个宿主机上的其他虚拟机抢走的。</p>
+<figure><img src="/assets/images/262bfb6c-3622-47a4-8bcf-4ff4efc3131d.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
 </div></template>
 
 
