@@ -574,6 +574,19 @@ AWSElasticBlockStore、GCEPersistentDisk、AzureDisk和Cinder类型的PV支持De
 <p>但在这一步，CRI shim 并不会直接去调用后端的容器项目（比如 Docker ）来进行处理，而只会返回一个 URL 给 kubelet。这个 URL，就是该 CRI shim 对应的 Streaming Server 的地址和端口。</p>
 <p>而 kubelet 在拿到这个 URL 之后，就会把它以 Redirect 的方式返回给 API Server。所以这时候，API Server 就会通过重定向来向 Streaming Server 发起真正的 /exec 请求，与它建立长连接</p>
 <p>当然，这个 Streaming Server 本身，是需要通过使用 SIG-Node 为你维护的 Streaming API 库来实现的。并且，Streaming Server 会在 CRI shim 启动时就一起启动。此外，Stream Server 这一部分具体怎么实现，完全可以由 CRI shim 的维护者自行决定。比如，对于 Docker 项目来说，dockershim 就是直接调用 Docker 的 Exec API 来作为实现的。</p>
-</div></template>
+<h2 id="集群安装" tabindex="-1"><a class="header-anchor" href="#集群安装"><span>集群安装</span></a></h2>
+<p>kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock</p>
+<p>kubeadm reset --cri-socket unix:///var/run/cri-dockerd.sock</p>
+<p>解决</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>l 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: I0729 15:07:31.604995 3437386 server.go:469] "Golang settings" GOGC="" GOMAXPROCS="" GOTRACEBACK=""</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: I0729 15:07:31.605172 3437386 server.go:895] "Client rotation is on, will bootstrap in background"</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: I0729 15:07:31.607274 3437386 certificate_store.go:130] Loading cert/key pair from "/var/lib/kubelet/pki/kubelet-client-current.pem".</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: I0729 15:07:31.608035 3437386 dynamic_cafile_content.go:157] "Starting controller" name="client-ca-bundle::/etc/kubernetes/pki/ca.crt"</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: W0729 15:07:31.611818 3437386 sysinfo.go:203] Nodes topology is not available, providing CPU topology</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: I0729 15:07:31.619656 3437386 server.go:725] "--cgroups-per-qos enabled, but --cgroup-root was not specified.  defaulting to /"</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 kubelet[3437386]: E0729 15:07:31.619995 3437386 run.go:74] "command failed" err="failed to run Kubelet: running with swap on is not supported, please disable swap! or set --fail-swap-on flag to false. /proc/swaps contained: [Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority /dev/sdb                                partition\t4194304\t\t8580\t\t-2]"</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 systemd[1]: kubelet.service: Main process exited, code=exited, status=1/FAILURE</span></span>
+<span class="line"><span>Jul 29 15:07:31 DESKTOP-P54EAF3 systemd[1]: kubelet.service: Failed with result 'exit-code'.</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div></template>
 
 
