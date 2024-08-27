@@ -1,6 +1,5 @@
 <template><div><div class="hint-container tip">
 <p class="hint-container-title">MInference：通过动态稀疏注意力加速长上下文 LLM 的预填充</p>
-</div>
 <h2 id="地址" tabindex="-1"><a class="header-anchor" href="#地址"><span>地址</span></a></h2>
 <p><a href="https://github.com/microsoft/MInference" target="_blank" rel="noopener noreferrer">https://github.com/microsoft/MInference</a></p>
 <h2 id="论文" tabindex="-1"><a class="header-anchor" href="#论文"><span>论文</span></a></h2>
@@ -25,7 +24,7 @@
 <p>内核中的延迟细分和稀疏模式：展示三种注意力模式和 FlashAttention 的微基准测试结果，Vertical-Slash 虽慢但仍有显著加速，还展示了 Vertical-Slash 头部 kernel 中的稀疏索引。</p>
 </li>
 </ul>
-<p>:::</p>
+</div>
 </div></template>
 
 

@@ -1,5 +1,6 @@
 <template><div><div class="hint-container tip">
 <p class="hint-container-title">FastGpt</p>
+</div>
 <h2 id="地址" tabindex="-1"><a class="header-anchor" href="#地址"><span>地址</span></a></h2>
 <p><a href="https://github.com/labring/FastGPT" target="_blank" rel="noopener noreferrer">https://github.com/labring/FastGPT</a></p>
 <h2 id="文档" tabindex="-1"><a class="header-anchor" href="#文档"><span>文档</span></a></h2>
@@ -385,7 +386,6 @@
 <span class="line"><span>    external: true</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>使用fastgpt apikey
 <img src="/assets/images/fastgptapi.png" alt="image.png" loading="lazy"></p>
-</div>
 </div></template>
 
 
