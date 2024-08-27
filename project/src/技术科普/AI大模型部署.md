@@ -7,8 +7,8 @@ tag:
   - FastGpt
   - chatgpt-on-web
 ---
+::: tip FastGpt
 
-# FastGpt
 ## 地址
 [https://github.com/labring/FastGPT](https://github.com/labring/FastGPT)
 ## 文档
