@@ -10,6 +10,7 @@ import * as clientConfig8 from 'D:/Code/knowledgeblob/project/src/.vuepress/.tem
 import * as clientConfig9 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/@vuepress+plugin-photo-swipe@2.0.0-rc.34_vuepress@2.0.0-rc.13/node_modules/@vuepress/plugin-photo-swipe/lib/client/config.js'
 import * as clientConfig10 from 'D:/Code/knowledgeblob/project/node_modules/.pnpm/vuepress-plugin-search-pro@2.0.0-rc.50_vuepress@2.0.0-rc.13/node_modules/vuepress-plugin-search-pro/lib/client/config.js'
 import * as clientConfig11 from 'D:/Code/knowledgeblob/project/src/.vuepress/.temp/theme-hope/config.js'
+import * as clientConfig12 from 'D:/Code/knowledgeblob/project/src/.vuepress/client.ts'
 
 export const clientConfigs = [
   clientConfig0,
@@ -24,4 +25,5 @@ export const clientConfigs = [
   clientConfig9,
   clientConfig10,
   clientConfig11,
+  clientConfig12,
 ].map((m) => m.default).filter(Boolean)
