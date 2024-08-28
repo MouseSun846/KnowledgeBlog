@@ -50,6 +50,43 @@
 <p>一个是&quot;ni&quot;，是&quot;nice&quot;的缩写，这里表示如果进程的 nice 值是正值（1-19），代表优先级比较低的进程运行时所占用的 CPU。</p>
 <p>另外一个是&quot;st&quot;，&quot;st&quot;是&quot;steal&quot;的缩写，是在虚拟机里用的一个 CPU 使用类型，表示有多少时间是被同一个宿主机上的其他虚拟机抢走的。</p>
 <figure><img src="/assets/images/262bfb6c-3622-47a4-8bcf-4ff4efc3131d.png" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
+<h2 id="扩容磁盘" tabindex="-1"><a class="header-anchor" href="#扩容磁盘"><span>扩容磁盘</span></a></h2>
+<p>要将 <code v-pre>nvme0n1p1</code> 的空间扩展到 <code v-pre>/dev/mapper/centos-root</code>，你需要执行以下步骤。这包括删除 <code v-pre>nvme0n1p1</code> 分区，重新分配空间，并将其添加到现有的 LVM 逻辑卷中。</p>
+<h3 id="_1-卸载并删除-nvme0n1p1-分区" tabindex="-1"><a class="header-anchor" href="#_1-卸载并删除-nvme0n1p1-分区"><span>1. 卸载并删除 <code v-pre>nvme0n1p1</code> 分区</span></a></h3>
+<p>首先，你需要确保 <code v-pre>nvme0n1p1</code> 上没有重要数据，并且它未被挂载。如果已经挂载，请先卸载：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> umount</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/nvme0n1p1</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>然后，使用 <code v-pre>fdisk</code> 删除 <code v-pre>nvme0n1p1</code> 分区：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> fdisk</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/nvme0n1</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>进入 <code v-pre>fdisk</code> 命令行后：</p>
+<ul>
+<li>输入 <code v-pre>d</code> 选择删除分区，然后输入分区号 <code v-pre>1</code> 删除 <code v-pre>nvme0n1p1</code>。</li>
+<li>输入 <code v-pre>w</code> 写入更改并退出 <code v-pre>fdisk</code>。</li>
+</ul>
+<h3 id="_2-创建新的分区并标记为-lvm" tabindex="-1"><a class="header-anchor" href="#_2-创建新的分区并标记为-lvm"><span>2. 创建新的分区并标记为 LVM</span></a></h3>
+<p>在释放 <code v-pre>nvme0n1p1</code> 的空间后，你需要重新创建一个新的分区，覆盖以前的分区空间，并将其类型设置为 <code v-pre>Linux LVM</code>。</p>
+<p>仍然使用 <code v-pre>fdisk</code> 来创建新分区：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> fdisk</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/nvme0n1</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>进入 <code v-pre>fdisk</code> 命令行后：</p>
+<ul>
+<li>输入 <code v-pre>n</code> 创建一个新的分区。</li>
+<li>使用默认的开始和结束扇区，覆盖以前的 <code v-pre>nvme0n1p1</code> 分区空间。</li>
+<li>输入 <code v-pre>t</code> 设置新分区的类型为 <code v-pre>8e</code>（Linux LVM）。</li>
+<li>输入 <code v-pre>w</code> 写入更改并退出 <code v-pre>fdisk</code>。</li>
+</ul>
+<h3 id="_3-将新分区添加到-lvm-物理卷" tabindex="-1"><a class="header-anchor" href="#_3-将新分区添加到-lvm-物理卷"><span>3. 将新分区添加到 LVM 物理卷</span></a></h3>
+<p>新分区创建并标记为 LVM 后，将其添加到 LVM 的物理卷中：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> pvcreate</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/nvme0n1p1</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> vgextend</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> centos</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/nvme0n1p1</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="_4-扩展逻辑卷-centos-root" tabindex="-1"><a class="header-anchor" href="#_4-扩展逻辑卷-centos-root"><span>4. 扩展逻辑卷 <code v-pre>centos-root</code></span></a></h3>
+<p>现在，你可以将新的空间分配给逻辑卷 <code v-pre>centos-root</code>：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> lvextend</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> -l</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> +100%FREE</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/mapper/centos-root</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="_5-扩展-xfs-文件系统" tabindex="-1"><a class="header-anchor" href="#_5-扩展-xfs-文件系统"><span>5. 扩展 <code v-pre>XFS</code> 文件系统</span></a></h3>
+<p>最后，使用 <code v-pre>xfs_growfs</code> 来扩展文件系统，使其利用新增的空间：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">sudo</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> xfs_growfs</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /dev/mapper/centos-root</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="_6-验证扩展结果" tabindex="-1"><a class="header-anchor" href="#_6-验证扩展结果"><span>6. 验证扩展结果</span></a></h3>
+<p>扩展完成后，使用 <code v-pre>df -h /</code> 来检查根文件系统的大小：</p>
+<div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">df</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> -h</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>这个命令将显示根文件系统的更新后的容量，确认 <code v-pre>nvme0n1p1</code> 的空间已经成功分配给 <code v-pre>/dev/mapper/centos-root</code>。</p>
 </div></template>
 
 
