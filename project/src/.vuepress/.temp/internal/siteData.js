@@ -1,1 +1,1 @@
-export const siteData = JSON.parse("{\"base\":\"/KnowledgeBlog/\",\"lang\":\"zh-CN\",\"title\":\"知识笔记\",\"description\":\"MouseSun846的知识笔记\",\"head\":[],\"locales\":{}}")
+export const siteData = JSON.parse("{\"base\":\"/KnowledgeBlog/\",\"lang\":\"zh-CN\",\"title\":\"知识笔记\",\"description\":\"MouseSun846的知识笔记\",\"head\":[[\"script\",{\"type\":\"text/javascript\",\"src\":\"https://fastly.jsdelivr.net/gh/stevenjoezhang/live2d-widget@latest/autoload.js\"}]],\"locales\":{}}")
