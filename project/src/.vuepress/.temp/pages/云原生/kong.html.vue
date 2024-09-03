@@ -1,5 +1,6 @@
-<template><div><p>::: Kong和Nginx创建服务和路由
-:::</p>
+<template><div><div class="hint-container tip">
+<p class="hint-container-title">Kong和Nginx创建服务和路由</p>
+</div>
 <p>下面是你使用Kong和Nginx创建服务和路由的步骤总结：</p>
 <h3 id="_1-nginx容器启动" tabindex="-1"><a class="header-anchor" href="#_1-nginx容器启动"><span>1. Nginx容器启动</span></a></h3>
 <p>你通过以下命令启动了一个Nginx容器，该容器暴露8088端口并挂载了配置文件和项目目录：</p>

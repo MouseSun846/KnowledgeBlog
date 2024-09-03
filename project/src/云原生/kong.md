@@ -8,7 +8,7 @@ tag:
   - nginx
   - html
 ---
-::: Kong和Nginx创建服务和路由
+::: tip Kong和Nginx创建服务和路由
 :::
 
 
