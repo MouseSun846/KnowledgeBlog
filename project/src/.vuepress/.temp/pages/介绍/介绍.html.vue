@@ -39,8 +39,7 @@
 <p>《飞鸟云课堂》是一款专注于在线教育的产品，通过丰富的教学资源和优质的用户体验，吸引了大量用户并实现了显著的商业变现。</p>
 <p>我拥有将技术与商业需求相结合的能力，擅长从需求分析到产品落地的全流程开发。如果你正在寻找一位能够推动项目成功、具备创新能力的全栈开发工程师，欢迎联系我！期待与您合作，共同实现卓越的技术和商业目标。</p>
 <h3 id="联系方式" tabindex="-1"><a class="header-anchor" href="#联系方式"><span>联系方式</span></a></h3>
-<p>微信：</p>
-<figure><img src="/assets/images/wx.jpg#pic_center" alt="Alt" width="300" height="300" tabindex="0" loading="lazy"><figcaption>Alt</figcaption></figure>
+<figure><img src="/assets/images/wx.jpg#pic_center" alt="微信" width="400" height="500" tabindex="0" loading="lazy"><figcaption>微信</figcaption></figure>
 </div></template>
 
 
