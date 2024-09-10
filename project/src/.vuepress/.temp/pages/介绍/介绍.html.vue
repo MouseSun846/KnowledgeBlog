@@ -1,8 +1,7 @@
 <template><div><div class="hint-container tip">
 <p class="hint-container-title">个人简介</p>
-<p>大家好，我是一名全栈开发工程师，拥有广泛的编程语言知识和丰富的技术经验。以下是我的专业技能和经验介绍：</p>
-</div>
 <p>大家好，我是一名充满热情的全栈开发工程师，具备广泛的编程语言知识和丰富的实际项目经验。我始终追求技术创新，致力于通过高效、优质的代码解决复杂的业务问题。在开发过程中，我不仅关注性能优化和可扩展性，还注重代码的可维护性和团队协作，能够快速适应不同的项目需求。</p>
+</div>
 <h3 id="编程语言" tabindex="-1"><a class="header-anchor" href="#编程语言"><span>编程语言</span></a></h3>
 <ul>
 <li><strong>Java</strong>: 我在Java领域有着深厚的积累，尤其擅长使用Spring Boot框架开发企业级应用，能够设计并实现高并发、高性能的后端服务，保障系统的稳定性与可扩展性。</li>
@@ -33,12 +32,15 @@
 <h3 id="项目经验" tabindex="-1"><a class="header-anchor" href="#项目经验"><span>项目经验</span></a></h3>
 <p><strong><a href="https://feiniaoyunketang.h5.ixunke.com/" target="_blank" rel="noopener noreferrer">飞鸟云课堂</a></strong></p>
 <ul>
-<li>日活流量：1GB</li>
+<li>日活流量：1GB+</li>
 <li>累计注册用户：5000+</li>
-<li>营销收入：80万元</li>
+<li>营销收入：80万元+</li>
 </ul>
 <p>《飞鸟云课堂》是一款专注于在线教育的产品，通过丰富的教学资源和优质的用户体验，吸引了大量用户并实现了显著的商业变现。</p>
 <p>我拥有将技术与商业需求相结合的能力，擅长从需求分析到产品落地的全流程开发。如果你正在寻找一位能够推动项目成功、具备创新能力的全栈开发工程师，欢迎联系我！期待与您合作，共同实现卓越的技术和商业目标。</p>
+<h3 id="联系方式" tabindex="-1"><a class="header-anchor" href="#联系方式"><span>联系方式</span></a></h3>
+<p>微信：</p>
+<figure><img src="/assets/images/wx.jpg" alt="" tabindex="0" loading="lazy"><figcaption></figcaption></figure>
 </div></template>
 
 
