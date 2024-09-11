@@ -9,7 +9,7 @@ tag:
 ---
 
 ::: tip MPress: Democratizing Billion-Scale Model Training on Multi-GPU Servers via Memory-Saving Inter-Operator Parallelism
-地址：https://par.nsf.gov/servlets/purl/10410479
+地址：[https://par.nsf.gov/servlets/purl/10410479](https://par.nsf.gov/servlets/purl/10410479)
 :::
 
 这篇论文的题目是《MPress: Democratizing Billion-Scale Model Training on Multi-GPU Servers via Memory-Saving Inter-Operator Parallelism》（MPress：通过节省内存的操作间并行化民主化十亿规模模型训练）。论文来自中国科学技术大学、安徵省高性能计算实验室和美国休斯顿大学。
@@ -117,8 +117,6 @@ MPress运行时部分与操作间并行训练框架的运行时部分共同工�
 基于以上观察和权衡，我们引入了一个近似的搜索算法，首先积极地为适当的张量分配GPU-CPU交换和重计算优化，然后通过逐步将部分GPU-CPU交换和重计算替换为D2D交换来优化配置。具体而言，我们首先执行生命周期变量分析来计算每个张量的生命周期。接着我们构建了初步配置，将GPU-CPU交换分配给生命周期特别长的张量，同时将重计算分配给激活张量，前提是重计算引入的额外延迟小于GPU-CPU交换的成本。最后，我们将GPU-CPU交换分配给剩余的张量，以满足目标内存节省需求。
 
 我们的算法会经历一些迭代步骤来逐步更新内存减少优化配置。在每个步骤中，我们使用模拟器运行最新的配置（仅需要执行一次训练迭代）来过滤出一组减少的张量，这些张量的优化引入了最大的额外开销。对于这些张量，我们尽量使用D2D交换来减少它们的内存占用，前提是存在空闲的GPU内存。如果新的配置比之前的配置性能更好，我们就接受它。该算法会在后续配置相较于前一个配置的性能提升不明显时终止。
-
-#### E. 实现细节
 
 #### E. 实现细节
 

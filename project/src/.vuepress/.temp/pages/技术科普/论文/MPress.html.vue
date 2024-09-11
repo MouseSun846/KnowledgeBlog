@@ -1,6 +1,6 @@
 <template><div><div class="hint-container tip">
 <p class="hint-container-title">MPress: Democratizing Billion-Scale Model Training on Multi-GPU Servers via Memory-Saving Inter-Operator Parallelism</p>
-<p>地址：https://par.nsf.gov/servlets/purl/10410479</p>
+<p>地址：<a href="https://par.nsf.gov/servlets/purl/10410479" target="_blank" rel="noopener noreferrer">https://par.nsf.gov/servlets/purl/10410479</a></p>
 </div>
 <p>这篇论文的题目是《MPress: Democratizing Billion-Scale Model Training on Multi-GPU Servers via Memory-Saving Inter-Operator Parallelism》（MPress：通过节省内存的操作间并行化民主化十亿规模模型训练）。论文来自中国科学技术大学、安徵省高性能计算实验室和美国休斯顿大学。</p>
 <h3 id="问题背景" tabindex="-1"><a class="header-anchor" href="#问题背景"><span>问题背景：</span></a></h3>
@@ -71,7 +71,6 @@
 <p>基于以上观察和权衡，我们引入了一个近似的搜索算法，首先积极地为适当的张量分配GPU-CPU交换和重计算优化，然后通过逐步将部分GPU-CPU交换和重计算替换为D2D交换来优化配置。具体而言，我们首先执行生命周期变量分析来计算每个张量的生命周期。接着我们构建了初步配置，将GPU-CPU交换分配给生命周期特别长的张量，同时将重计算分配给激活张量，前提是重计算引入的额外延迟小于GPU-CPU交换的成本。最后，我们将GPU-CPU交换分配给剩余的张量，以满足目标内存节省需求。</p>
 <p>我们的算法会经历一些迭代步骤来逐步更新内存减少优化配置。在每个步骤中，我们使用模拟器运行最新的配置（仅需要执行一次训练迭代）来过滤出一组减少的张量，这些张量的优化引入了最大的额外开销。对于这些张量，我们尽量使用D2D交换来减少它们的内存占用，前提是存在空闲的GPU内存。如果新的配置比之前的配置性能更好，我们就接受它。该算法会在后续配置相较于前一个配置的性能提升不明显时终止。</p>
 <h4 id="e-实现细节" tabindex="-1"><a class="header-anchor" href="#e-实现细节"><span>E. 实现细节</span></a></h4>
-<h4 id="e-实现细节-1" tabindex="-1"><a class="header-anchor" href="#e-实现细节-1"><span>E. 实现细节</span></a></h4>
 <p>我们将上述设计原则集成到开源训练系统MPress中，该系统由2000行C++和Python代码组成。为了展示其在操作间并行训练中优化GPU内存使用的通用性，我们将MPress集成到了PipeDream和DAPPLE这两个最近的操作间并行训练系统中。其后端引擎是PyTorch。我们通过将PipeDream的原始PyTorch版本从1.1升级到1.2，并启用其NCCL库以使用NVLink在阶段之间传输数据，改进了PipeDream系统。需要注意的是，MPress是通用的，可以应用于其他操作间并行训练系统，如GPipe。我们将继续使MPress适用于这些系统。</p>
 <p><strong>内存管理</strong>：我们的内存管理器负责为张量分配和释放GPU/CPU内存空间，并监控每个设备的内存使用情况。首先，针对GPU内存分配，管理器直接使用PyTorch中的原生GPU内存分配器。其次，在主机内存请求方面，考虑到固定内存（pinned memory）与GPU内存之间的数据传输速度快于普通可分页内存（pageable memory），我们决定使用固定内存作为交换空间。为了避免频繁分配和释放固定内存的高成本，我们进一步构建了一个独立于PyTorch运行时的主机固定内存池。</p>
 <p><strong>内存交换</strong>：对于D2D交换，执行器为执行交换操作的swap-in和swap-out任务分别管理两个额外的线程，这些线程使用系统启动时通过调用<code v-pre>cudaStreamCreate</code>创建的不同CUDA流（streams）。这种设计允许执行器在不阻塞主线程的情况下，启动张量传输任务并与DNN计算同步检查其状态。因此，GPU之间的数据移动可以与DNN计算异步进行。</p>
