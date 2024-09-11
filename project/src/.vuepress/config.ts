@@ -1,7 +1,7 @@
 import { defineUserConfig } from "vuepress";
 import theme from "./theme.js";
 export default defineUserConfig({
-  base: "/KnowledgeBlog",
+  base: "/KnowledgeBlog/",
   head: [
     ['script', {type: "text/javascript", src: "https://fastly.jsdelivr.net/gh/stevenjoezhang/live2d-widget@latest/autoload.js"}],
   ],
