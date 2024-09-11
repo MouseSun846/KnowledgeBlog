@@ -178,6 +178,7 @@ minimize max {Compd + Commd}
 nnScaler 会将模型和生成的并行化计划编译为可执行代码，遵循图 3 中展示的端到端流程。系统首先将深度学习模型转换为数据流图（Graph IR）。通过原语和相关约束定义搜索空间，nnScaler 利用搜索策略生成并行化计划。计划编译接着将该计划定义的原语和约束应用于 Graph IR。在此步骤中，nnScaler 通过 vTensor 和 pTensor 抽象进行数据依赖追踪。生成的新数据依赖关系以及由于算子分布到多个设备而产生的额外通信操作会被反映到 Graph IR 中，最终这些内容会被物化为并行执行的可执行代码。
 
 ##### 张量抽象 vTensor 和 pTensor
+![Tracks data dependencies with pTensor-vTensor](/assets/images/ptensor-vtensor.jpg)
 vTensor 和 pTensor 被引入以追踪应用三个原语时数据依赖关系的变化。如图 4 所示，pTensor 表示逻辑模型中的张量，而 vTensor 则表示应用原语后产生的结果张量。vTensor 连接到 pTensor，并维护一个掩码，指示该 vTensor 所代表的 pTensor 部分。一个 pTensor 可以与多个算子相关联。在图 4 的顶部，算子 A 的输出作为算子 B 的输入，两个算子通过各自的 vTensor 连接到同一个 pTensor。
 
 通过 vTensor，每个算子都可以独立地进行变换、分配和排序。当应用 `op-trans` 时，nnScaler 通过 vTensor 的“掩码”划分 vTensor，而 pTensor 保持不变。例如，在图 4 中，算子 A 只会拆分自身及其输出的 vTensor，而算子 B 的 vTensor 不受影响。对于其他类型的原语，vTensor 的掩码保持不变。因此，nnScaler 可以通过计算生产者和消费者 vTensor 的掩码交集来检测它们之间是否存在数据依赖关系。运行时执行过程中，只有 vTensor 会被实例化为实际的 GPU 张量实例。
