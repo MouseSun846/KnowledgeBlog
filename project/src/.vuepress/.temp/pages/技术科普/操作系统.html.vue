@@ -92,6 +92,15 @@
 <div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>[boot]</span></span>
 <span class="line"><span>systemd=true</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><p>然后，需要使用 PowerShell 关闭 WSL 分发 wsl.exe --shutdown 版来重启 WSL 实例。分发重启后，系统应运行。可以使用以下命令进行确认：systemctl list-unit-files --type=service这将显示服务的状态。</p>
+<h2 id="wsl2迁移至其他目录" tabindex="-1"><a class="header-anchor" href="#wsl2迁移至其他目录"><span>WSL2迁移至其他目录</span></a></h2>
+<p>1） 停止正在运行的wsl</p>
+<p>wsl --shutdown</p>
+<p>2）将需要迁移的Linux，进行导出</p>
+<p>wsl --export Ubuntu D:/ubuntu22.04.tar</p>
+<p>3）导出完成之后，将原有的Linux卸载</p>
+<p>wsl --unregister Ubuntu</p>
+<p>4） 然后将导出的文件放到需要保存的地方，进行导入即可</p>
+<p>wsl --import Ubuntu-20.04 D:\ubuntu\ D:/ubuntu/ubuntu22.04.tar --version 2</p>
 </div></template>
 
 
