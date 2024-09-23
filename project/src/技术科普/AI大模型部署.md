@@ -407,3 +407,28 @@ networks:
 ```
 使用fastgpt apikey
 ![image.png](/assets/images/fastgptapi.png)
+
+
+
+## cosyvoice 部署
+
+[git地址](https://github.com/FunAudioLLM/CosyVoice)
+
+docker地址: registry.cn-hangzhou.aliyuncs.com/software_hub/cosyvoice:v1
+
+### 模型下载
+
+```
+git clone https://www.modelscope.cn/iic/CosyVoice-300M.git pretrained_models/CosyVoice-300M
+```
+
+### 镜像启动
+```
+docker run -itd --name cosyvoice --gpus all -v /home/lsy/cosyvoice/model:/model -p 50000:50000 -v cosyvoice:v1
+
+```
+
+### 服务启动
+```
+ python3 webui.py --port 50000 --model_dir /model/pretrained_models/CosyVoice-300M
+```

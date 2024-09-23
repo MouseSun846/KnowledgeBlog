@@ -87,6 +87,11 @@
 <p>扩展完成后，使用 <code v-pre>df -h /</code> 来检查根文件系统的大小：</p>
 <div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">df</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> -h</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>这个命令将显示根文件系统的更新后的容量，确认 <code v-pre>nvme0n1p1</code> 的空间已经成功分配给 <code v-pre>/dev/mapper/centos-root</code>。</p>
+<h2 id="wsl-启用systemd" tabindex="-1"><a class="header-anchor" href="#wsl-启用systemd"><span>wsl 启用systemd</span></a></h2>
+<p>若要启用 systemd，请使用sudo管理员权限在文本编辑器中打开文件wsl.conf，并将以下行添加到/etc/wsl.conf</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>[boot]</span></span>
+<span class="line"><span>systemd=true</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><p>然后，需要使用 PowerShell 关闭 WSL 分发 wsl.exe --shutdown 版来重启 WSL 实例。分发重启后，系统应运行。可以使用以下命令进行确认：systemctl list-unit-files --type=service这将显示服务的状态。</p>
 </div></template>
 
 
