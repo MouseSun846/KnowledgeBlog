@@ -88,6 +88,7 @@
 <div class="language-bash line-numbers-mode" data-highlighter="shiki" data-ext="bash" data-title="bash" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">df</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66"> -h</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> /</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>这个命令将显示根文件系统的更新后的容量，确认 <code v-pre>nvme0n1p1</code> 的空间已经成功分配给 <code v-pre>/dev/mapper/centos-root</code>。</p>
 <h2 id="wsl-启用systemd" tabindex="-1"><a class="header-anchor" href="#wsl-启用systemd"><span>wsl 启用systemd</span></a></h2>
+<p>解决Ubantu 报错：System has not been booted with systemd as init system (PID 1). Can‘t operate.</p>
 <p>若要启用 systemd，请使用sudo管理员权限在文本编辑器中打开文件wsl.conf，并将以下行添加到/etc/wsl.conf</p>
 <div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>[boot]</span></span>
 <span class="line"><span>systemd=true</span></span></code></pre>
@@ -96,9 +97,9 @@
 <p>1） 停止正在运行的wsl</p>
 <p>wsl --shutdown</p>
 <p>2）将需要迁移的Linux，进行导出</p>
-<p>wsl --export Ubuntu D:/ubuntu22.04.tar</p>
+<p>wsl --export Ubuntu-20.04 D:/ubuntu22.04.tar</p>
 <p>3）导出完成之后，将原有的Linux卸载</p>
-<p>wsl --unregister Ubuntu</p>
+<p>wsl --unregister Ubuntu-20.04</p>
 <p>4） 然后将导出的文件放到需要保存的地方，进行导入即可</p>
 <p>wsl --import Ubuntu-20.04 D:\ubuntu\ D:/ubuntu/ubuntu22.04.tar --version 2</p>
 </div></template>
