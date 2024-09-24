@@ -55,10 +55,10 @@ LLM 应用实例。引入一些成功的开源案例，从本课程的角度出�
 <p>动手学 Ollama 教程，轻松上手实现大模型本地化部署，快速在本地管理以及运行大模型，让 CPU 也可以玩转大模型推理部署！</p>
 <p>本教程涵盖从基础入门到进阶使用的全方位内容，并通过实际应用案例深入理解和掌握大模型部署以及应用技术。我们的教程提供清晰的步骤和实用的技巧，无论是刚刚接触大模型部署的小白，还是有一定经验的开发者，都可以从零开始学习 Ollama ，实现本地部署大模型以及相关应用。</p>
 <p>目录结构说明：</p>
-<p>docs ---------------------- Markdown 文档文件
-notebook ------------------ Notebook 源代码文件以及部分 Python、Java 和 JavaScript 源文件
-images -------------------- 图片
-在线阅读：https://datawhalechina.github.io/handy-ollama/</p>
+<p>docs ---------------------- Markdown 文档文件</p>
+<p>notebook ------------------ Notebook 源代码文件以及部分 Python、Java 和 JavaScript 源文件</p>
+<p>images -------------------- 图片</p>
+<p>在线阅读：<a href="https://datawhalechina.github.io/handy-ollama/" target="_blank" rel="noopener noreferrer">https://datawhalechina.github.io/handy-ollama/</a></p>
 <h2 id="machine-learning-toy-code" tabindex="-1"><a class="header-anchor" href="#machine-learning-toy-code"><span><a href="https://github.com/datawhalechina/machine-learning-toy-code" target="_blank" rel="noopener noreferrer">machine-learning-toy-code</a></span></a></h2>
 <p>西瓜书代码实战</p>
 <p>本项目以西瓜书以及南瓜书为主要参考，其他资料为辅助，来进行常见机器学习代码的实战。主要特色为力求数码结合，即数学公式与相关代码的形神对应，能够帮助读者加深对公式的理解以及代码的熟练。</p>
