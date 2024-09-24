@@ -1,5 +1,6 @@
 <template><div><div class="hint-container tip">
 <p class="hint-container-title">学习资料</p>
+</div>
 <h2 id="awesome-compression" tabindex="-1"><a class="header-anchor" href="#awesome-compression"><span><a href="https://github.com/datawhalechina/awesome-compression" target="_blank" rel="noopener noreferrer">Awesome Compression</a></span></a></h2>
 <h3 id="项目简介" tabindex="-1"><a class="header-anchor" href="#项目简介"><span>项目简介</span></a></h3>
 <p>随着ChatGPT的出圈，大语言模型层出不穷，并展现出非凡的能力，可以有效地解决各种问题。然而，这些模型通常需要大量的计算资源和内存，导致运行时资源消耗较高，限制了其在某些场景下的应用，让很多研究者望而却步。本项目使用通俗易懂的语言介绍模型的剪枝、量化、知识蒸馏等压缩方法，让更多的小白能更快了解到模型压缩技术。</p>
@@ -66,7 +67,6 @@ images -------------------- 图片
 <p>本项目旨在作为一个大规模预训练语言模型的教程，从数据准备、模型构建、训练策略到模型评估与改进，以及模型在安全、隐私、环境和法律道德方面的方面来提供开源知识。</p>
 <p>项目将以斯坦福大学大规模语言模型课程和李宏毅生成式AI课程为基础，结合来自开源贡献者的补充和完善，以及对前沿大模型知识的及时更新，为读者提供较为全面而深入的理论知识和实践方法。通过对模型构建、训练、评估与改进等方面的系统性讲解，以及代码的实战，我们希望建立一个具有广泛参考价值的项目。</p>
 <p>我们的项目团队成员将分工负责各个章节的内容梳理和撰写，并预计在三个月内完成初始版本内容。随后，我们将持续根据社区贡献和反馈进行内容的更新和优化，以确保项目的持续发展和知识的时效性。我们期待通过这个项目，为大型语言模型研究领域贡献一份宝贵的资源，推动相关技术的快速发展和广泛应用。</p>
-</div>
 </div></template>
 
 
