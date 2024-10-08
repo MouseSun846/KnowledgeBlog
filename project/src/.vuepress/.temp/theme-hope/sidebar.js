@@ -1,1 +1,1 @@
-export const sidebarData = {"/介绍/":["介绍"],"/云原生/":["etcd","operator","k8s","kong","kubeflow"],"/杂谈/":["独立开发者"],"/技术科普/":[{"text":"论文解读","prefix":"论文/","collapsible":true,"children":["MPress","nnScaler"]},"操作系统","工具","计算机网络","开源技术","学习资料","AI大模型部署","pytorch"],"/异构计算/":["异构计算"]};
+export const sidebarData = {"/介绍/":["介绍"],"/云原生/":["etcd","operator","k8s","kong","kubeflow"],"/杂谈/":["独立开发者"],"/技术科普/":[{"text":"论文解读","prefix":"论文/","collapsible":true,"children":["MPress","nnScaler"]},"操作系统","工具","计算机网络","开源技术","学习资料","AI大模型部署","nccl","pytorch"],"/异构计算/":["异构计算"]};
