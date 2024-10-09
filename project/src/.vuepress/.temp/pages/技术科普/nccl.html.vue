@@ -3,6 +3,29 @@
 </div>
 <h2 id="nccl" tabindex="-1"><a class="header-anchor" href="#nccl"><span>nccl</span></a></h2>
 <p>NCCL是一款独立的库，提供标准的 GPU 通信例程，支持全规约（all-reduce）、全收集（all-gather）、规约（reduce）、广播（broadcast）、规约并散播（reduce-scatter）以及任意基于发送/接收的通信模式。该库经过优化，能够在使用 PCIe、NVLink、NVSwitch 以及基于 InfiniBand Verbs 或 TCP/IP 套接字的网络平台上实现高带宽。NCCL 支持任意数量的 GPU，无论是安装在单节点还是跨多个节点的系统中，并且可以在单进程或多进程（如 MPI）应用程序中使用。</p>
+<p>NCCL 概述<br>
+NVIDIA 集体通信库（NCCL，发音为“Nickel”）是一个库，提供拓扑感知的 GPU 间通信原语，能够方便地集成到应用程序中。</p>
+<p>NCCL 实现了集体通信和点对点发送/接收原语。它不是一个完整的并行编程框架，而是一个专注于加速 GPU 间通信的库。</p>
+<p>NCCL 提供以下集体通信原语：</p>
+<ul>
+<li>AllReduce（全规约）</li>
+<li>Broadcast（广播）</li>
+<li>Reduce（规约）</li>
+<li>AllGather（全收集）</li>
+<li>ReduceScatter（规约并散播）</li>
+</ul>
+<p>此外，它还支持点对点发送/接收通信，允许实现 scatter、gather 或 all-to-all 操作。</p>
+<p>在集体通信中，通信处理器之间的紧密同步是关键。传统上，基于 CUDA 的集体操作通常通过 CUDA 内存拷贝操作和 CUDA 核函数结合本地规约来实现。而 NCCL 则将每个集体操作实现为一个处理通信和计算操作的单一核函数。这样可以实现快速同步，并最大限度地减少达到峰值带宽所需的资源。</p>
+<p>NCCL 方便地免除了开发人员为特定机器优化应用程序的需求。NCCL 在多个 GPU 之间提供快速的集体通信，无论是在单个节点内还是跨节点。它支持多种互连技术，包括 PCIe、NVLINK、InfiniBand Verbs 和 IP 套接字。</p>
+<p>除了性能，简便的编程体验也是 NCCL 设计的主要考虑因素之一。NCCL 使用简单的 C API，可以轻松通过多种编程语言访问。NCCL 紧密遵循 MPI（消息传递接口）定义的流行集体操作 API，因此熟悉 MPI 的用户会发现 NCCL 的 API 非常容易使用。与 MPI 略有不同的是，NCCL 的集体操作带有一个“流”参数，使其能够直接与 CUDA 编程模型集成。最后，NCCL 几乎兼容任何多 GPU 并行化模型，例如：</p>
+<ul>
+<li>单线程控制所有 GPU</li>
+<li>多线程（例如，每个 GPU 一个线程）</li>
+<li>多进程（例如，MPI）</li>
+</ul>
+<p>NCCL 在深度学习框架中有着广泛的应用，AllReduce 集体操作在神经网络训练中被广泛使用。通过 NCCL 提供的多 GPU 和多节点通信，可以实现神经网络训练的高效扩展。</p>
+<p>NCCL 是一个通信库，提供用于高性能应用的 GPU 间优化通信。与 MPI 不同，NCCL 不提供并行环境，也不包含进程启动器和管理器。因此，NCCL 依赖于应用程序的进程管理系统和 CPU 端的通信系统来进行自启动。</p>
+<p>与 MPI 和其他为性能优化的库类似，NCCL 不提供 GPU 之间的安全网络通信。因此，用户有责任确保 NCCL 在安全的网络上运行，无论是在自启动阶段（由 NCCL_SOCKET_IFNAME 控制）还是在高速通信过程中。</p>
 <h3 id="下载源码" tabindex="-1"><a class="header-anchor" href="#下载源码"><span>下载源码</span></a></h3>
 <div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>git clone https://github.com/NVIDIA/nccl-tests.git</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="构建编译" tabindex="-1"><a class="header-anchor" href="#构建编译"><span>构建编译</span></a></h3>

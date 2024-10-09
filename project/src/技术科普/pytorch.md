@@ -228,3 +228,61 @@ int main(int argc, char** argv) {
 ### 总结
 
 MPI 是并行计算领域的重要工具，提供了灵活且高效的消息传递机制，使得程序能够在多处理单元环境中高效运行。MPI 的标准化设计和广泛支持使其成为高性能计算、分布式计算和大规模数据处理任务中的主流选择。
+
+
+## 源码解读
+
+torch\distributed\distributed_c10d.py
+
+```
+@_exception_logger
+@_time_logger
+def init_process_group(
+    backend: Optional[str] = None,
+    init_method: Optional[str] = None,
+    timeout: Optional[timedelta] = None,
+    world_size: int = -1,
+    rank: int = -1,
+    store: Optional[Store] = None,
+    group_name: str = "",
+    pg_options: Optional[Any] = None,
+    device_id: Optional[torch.device] = None,
+) -> None:
+
+```
+
+以下是函数 `init_process_group` 的翻译：
+
+---
+
+### 初始化默认的分布式进程组。
+
+这也将初始化分布式包。
+
+初始化进程组有两种主要方式：
+1. 明确指定 `store`、`rank` 和 `world_size`。
+2. 指定 `init_method`（一个 URL 字符串），用于指示在哪里/如何发现同伴。可以选择性地指定 `rank` 和 `world_size`，或在 URL 中编码所有必需参数并省略它们。
+
+如果两者都未指定，默认 `init_method` 为 "env://"。
+
+---
+
+#### 参数说明：
+- `backend`（字符串或 Backend，可选）：指定使用的后端。根据构建时的配置，有效值包括 `mpi`、`gloo`、`nccl` 和 `ucc`。如果未提供后端，将创建 `gloo` 和 `nccl` 两个后端。请注意，如果使用多个进程并且使用 `nccl` 后端，每个进程必须独占其使用的每个 GPU，否则可能会导致死锁。`ucc` 后端为实验性特性。
+  
+- `init_method`（字符串，可选）：指定如何初始化进程组的 URL。默认值为 "env://"（如果未指定 `init_method` 或 `store`）。与 `store` 互斥。
+
+- `world_size`（整数，可选）：参与任务的进程数量。如果指定了 `store`，这是必需的。
+
+- `rank`（整数，可选）：当前进程的编号（应为 0 到 `world_size`-1 之间的数字）。如果指定了 `store`，这是必需的。
+
+- `store`（Store，可选）：可供所有工作者访问的键值存储，用于交换连接/地址信息。与 `init_method` 互斥。
+
+- `timeout`（timedelta，可选）：在进程组上执行操作的超时时间。NCCL 后端的默认值为 10 分钟，其他后端为 30 分钟。这是异步中止集合操作的时间限制，操作失败后进程将崩溃。由于 CUDA 的异步执行，无法安全继续执行用户代码，可能导致后续的 CUDA 操作在损坏的数据上运行。当 `TORCH_NCCL_BLOCKING_WAIT` 被设置时，进程将阻塞并等待此超时时间。
+
+- `group_name`（字符串，可选，已弃用）：进程组名称，此参数已被忽略。
+
+- `pg_options`（ProcessGroupOptions，可选）：用于构建特定进程组的其他选项。目前支持的选项是 `ProcessGroupNCCL.Options`，如 `is_high_priority_stream` 可指定 NCCL 后端使用高优先级的 CUDA 流。其他配置选项请参考 NVIDIA NCCL 文档。
+
+- `device_id`（torch.device，可选）：用于“绑定”当前进程的特定设备，允许进行后端优化。目前在 NCCL 下有两个效果：1) 通信器立即初始化，而不是通常的延迟调用；2) 当可能时，子组将使用 `ncclCommSplit` 以避免不必要的组创建开销。如果想提前知道 NCCL 初始化错误，也可以使用该参数。
+

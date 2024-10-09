@@ -242,6 +242,62 @@ MPI-IO 是 MPI 的一个子集，专门用于并行文件输入输出操作。MP
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="总结-3" tabindex="-1"><a class="header-anchor" href="#总结-3"><span>总结</span></a></h3>
 <p>MPI 是并行计算领域的重要工具，提供了灵活且高效的消息传递机制，使得程序能够在多处理单元环境中高效运行。MPI 的标准化设计和广泛支持使其成为高性能计算、分布式计算和大规模数据处理任务中的主流选择。</p>
+<h2 id="源码解读" tabindex="-1"><a class="header-anchor" href="#源码解读"><span>源码解读</span></a></h2>
+<p>torch\distributed\distributed_c10d.py</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>@_exception_logger</span></span>
+<span class="line"><span>@_time_logger</span></span>
+<span class="line"><span>def init_process_group(</span></span>
+<span class="line"><span>    backend: Optional[str] = None,</span></span>
+<span class="line"><span>    init_method: Optional[str] = None,</span></span>
+<span class="line"><span>    timeout: Optional[timedelta] = None,</span></span>
+<span class="line"><span>    world_size: int = -1,</span></span>
+<span class="line"><span>    rank: int = -1,</span></span>
+<span class="line"><span>    store: Optional[Store] = None,</span></span>
+<span class="line"><span>    group_name: str = "",</span></span>
+<span class="line"><span>    pg_options: Optional[Any] = None,</span></span>
+<span class="line"><span>    device_id: Optional[torch.device] = None,</span></span>
+<span class="line"><span>) -> None:</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>以下是函数 <code v-pre>init_process_group</code> 的翻译：</p>
+<hr>
+<h3 id="初始化默认的分布式进程组。" tabindex="-1"><a class="header-anchor" href="#初始化默认的分布式进程组。"><span>初始化默认的分布式进程组。</span></a></h3>
+<p>这也将初始化分布式包。</p>
+<p>初始化进程组有两种主要方式：</p>
+<ol>
+<li>明确指定 <code v-pre>store</code>、<code v-pre>rank</code> 和 <code v-pre>world_size</code>。</li>
+<li>指定 <code v-pre>init_method</code>（一个 URL 字符串），用于指示在哪里/如何发现同伴。可以选择性地指定 <code v-pre>rank</code> 和 <code v-pre>world_size</code>，或在 URL 中编码所有必需参数并省略它们。</li>
+</ol>
+<p>如果两者都未指定，默认 <code v-pre>init_method</code> 为 &quot;env://&quot;。</p>
+<hr>
+<h4 id="参数说明" tabindex="-1"><a class="header-anchor" href="#参数说明"><span>参数说明：</span></a></h4>
+<ul>
+<li>
+<p><code v-pre>backend</code>（字符串或 Backend，可选）：指定使用的后端。根据构建时的配置，有效值包括 <code v-pre>mpi</code>、<code v-pre>gloo</code>、<code v-pre>nccl</code> 和 <code v-pre>ucc</code>。如果未提供后端，将创建 <code v-pre>gloo</code> 和 <code v-pre>nccl</code> 两个后端。请注意，如果使用多个进程并且使用 <code v-pre>nccl</code> 后端，每个进程必须独占其使用的每个 GPU，否则可能会导致死锁。<code v-pre>ucc</code> 后端为实验性特性。</p>
+</li>
+<li>
+<p><code v-pre>init_method</code>（字符串，可选）：指定如何初始化进程组的 URL。默认值为 &quot;env://&quot;（如果未指定 <code v-pre>init_method</code> 或 <code v-pre>store</code>）。与 <code v-pre>store</code> 互斥。</p>
+</li>
+<li>
+<p><code v-pre>world_size</code>（整数，可选）：参与任务的进程数量。如果指定了 <code v-pre>store</code>，这是必需的。</p>
+</li>
+<li>
+<p><code v-pre>rank</code>（整数，可选）：当前进程的编号（应为 0 到 <code v-pre>world_size</code>-1 之间的数字）。如果指定了 <code v-pre>store</code>，这是必需的。</p>
+</li>
+<li>
+<p><code v-pre>store</code>（Store，可选）：可供所有工作者访问的键值存储，用于交换连接/地址信息。与 <code v-pre>init_method</code> 互斥。</p>
+</li>
+<li>
+<p><code v-pre>timeout</code>（timedelta，可选）：在进程组上执行操作的超时时间。NCCL 后端的默认值为 10 分钟，其他后端为 30 分钟。这是异步中止集合操作的时间限制，操作失败后进程将崩溃。由于 CUDA 的异步执行，无法安全继续执行用户代码，可能导致后续的 CUDA 操作在损坏的数据上运行。当 <code v-pre>TORCH_NCCL_BLOCKING_WAIT</code> 被设置时，进程将阻塞并等待此超时时间。</p>
+</li>
+<li>
+<p><code v-pre>group_name</code>（字符串，可选，已弃用）：进程组名称，此参数已被忽略。</p>
+</li>
+<li>
+<p><code v-pre>pg_options</code>（ProcessGroupOptions，可选）：用于构建特定进程组的其他选项。目前支持的选项是 <code v-pre>ProcessGroupNCCL.Options</code>，如 <code v-pre>is_high_priority_stream</code> 可指定 NCCL 后端使用高优先级的 CUDA 流。其他配置选项请参考 NVIDIA NCCL 文档。</p>
+</li>
+<li>
+<p><code v-pre>device_id</code>（torch.device，可选）：用于“绑定”当前进程的特定设备，允许进行后端优化。目前在 NCCL 下有两个效果：1) 通信器立即初始化，而不是通常的延迟调用；2) 当可能时，子组将使用 <code v-pre>ncclCommSplit</code> 以避免不必要的组创建开销。如果想提前知道 NCCL 初始化错误，也可以使用该参数。</p>
+</li>
+</ul>
 </div></template>
 
 
