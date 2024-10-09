@@ -243,6 +243,7 @@ MPI-IO 是 MPI 的一个子集，专门用于并行文件输入输出操作。MP
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="总结-3" tabindex="-1"><a class="header-anchor" href="#总结-3"><span>总结</span></a></h3>
 <p>MPI 是并行计算领域的重要工具，提供了灵活且高效的消息传递机制，使得程序能够在多处理单元环境中高效运行。MPI 的标准化设计和广泛支持使其成为高性能计算、分布式计算和大规模数据处理任务中的主流选择。</p>
 <h2 id="源码解读" tabindex="-1"><a class="header-anchor" href="#源码解读"><span>源码解读</span></a></h2>
+<h2 id="init-process-group" tabindex="-1"><a class="header-anchor" href="#init-process-group"><span>init_process_group</span></a></h2>
 <p>torch\distributed\distributed_c10d.py</p>
 <div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>@_exception_logger</span></span>
 <span class="line"><span>@_time_logger</span></span>
@@ -298,6 +299,34 @@ MPI-IO 是 MPI 的一个子集，专门用于并行文件输入输出操作。MP
 <p><code v-pre>device_id</code>（torch.device，可选）：用于“绑定”当前进程的特定设备，允许进行后端优化。目前在 NCCL 下有两个效果：1) 通信器立即初始化，而不是通常的延迟调用；2) 当可能时，子组将使用 <code v-pre>ncclCommSplit</code> 以避免不必要的组创建开销。如果想提前知道 NCCL 初始化错误，也可以使用该参数。</p>
 </li>
 </ul>
+<h2 id="backend" tabindex="-1"><a class="header-anchor" href="#backend"><span>Backend</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>class Backend(str):</span></span>
+<span class="line"><span>    """</span></span>
+<span class="line"><span>    An enum-like class for backends.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    Available backends: GLOO, NCCL, UCC, MPI, and other registered backends.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    The values of this class are lowercase strings, e.g., ``"gloo"``. They can</span></span>
+<span class="line"><span>    be accessed as attributes, e.g., ``Backend.NCCL``.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    This class can be directly called to parse the string, e.g.,</span></span>
+<span class="line"><span>    ``Backend(backend_str)`` will check if ``backend_str`` is valid, and</span></span>
+<span class="line"><span>    return the parsed lowercase string if so. It also accepts uppercase strings,</span></span>
+<span class="line"><span>    e.g., ``Backend("GLOO")`` returns ``"gloo"``.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    .. note:: The entry ``Backend.UNDEFINED`` is present but only used as</span></span>
+<span class="line"><span>              initial value of some fields. Users should neither use it directly</span></span>
+<span class="line"><span>              nor assume its existence.</span></span>
+<span class="line"><span>    """</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><hr>
+<h3 id="backend-类" tabindex="-1"><a class="header-anchor" href="#backend-类"><span>Backend 类</span></a></h3>
+<p>一个类似枚举的类，用于表示后端类型。</p>
+<p>可用的后端包括：<code v-pre>GLOO</code>、<code v-pre>NCCL</code>、<code v-pre>UCC</code>、<code v-pre>MPI</code> 以及其他已注册的后端。</p>
+<p>该类的值是小写字符串，例如 <code v-pre>&quot;gloo&quot;</code>。可以通过属性访问，例如 <code v-pre>Backend.NCCL</code>。</p>
+<p>此类还可以直接调用来解析字符串，例如，<code v-pre>Backend(backend_str)</code> 将检查 <code v-pre>backend_str</code> 是否有效，如果有效，返回解析后的小写字符串。它还接受大写字符串，例如，<code v-pre>Backend(&quot;GLOO&quot;)</code> 将返回 <code v-pre>&quot;gloo&quot;</code>。</p>
+<hr>
+<h4 id="注意" tabindex="-1"><a class="header-anchor" href="#注意"><span>注意：</span></a></h4>
+<p>条目 <code v-pre>Backend.UNDEFINED</code> 存在，但仅作为某些字段的初始值。用户不应直接使用它，也不应假设它的存在。</p>
 </div></template>
 
 

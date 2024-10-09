@@ -232,6 +232,8 @@ MPI 是并行计算领域的重要工具，提供了灵活且高效的消息传�
 
 ## 源码解读
 
+## init_process_group
+
 torch\distributed\distributed_c10d.py
 
 ```
@@ -286,3 +288,42 @@ def init_process_group(
 
 - `device_id`（torch.device，可选）：用于“绑定”当前进程的特定设备，允许进行后端优化。目前在 NCCL 下有两个效果：1) 通信器立即初始化，而不是通常的延迟调用；2) 当可能时，子组将使用 `ncclCommSplit` 以避免不必要的组创建开销。如果想提前知道 NCCL 初始化错误，也可以使用该参数。
 
+
+## Backend
+```
+class Backend(str):
+    """
+    An enum-like class for backends.
+
+    Available backends: GLOO, NCCL, UCC, MPI, and other registered backends.
+
+    The values of this class are lowercase strings, e.g., ``"gloo"``. They can
+    be accessed as attributes, e.g., ``Backend.NCCL``.
+
+    This class can be directly called to parse the string, e.g.,
+    ``Backend(backend_str)`` will check if ``backend_str`` is valid, and
+    return the parsed lowercase string if so. It also accepts uppercase strings,
+    e.g., ``Backend("GLOO")`` returns ``"gloo"``.
+
+    .. note:: The entry ``Backend.UNDEFINED`` is present but only used as
+              initial value of some fields. Users should neither use it directly
+              nor assume its existence.
+    """
+```    
+
+
+---
+
+### Backend 类
+一个类似枚举的类，用于表示后端类型。
+
+可用的后端包括：`GLOO`、`NCCL`、`UCC`、`MPI` 以及其他已注册的后端。
+
+该类的值是小写字符串，例如 `"gloo"`。可以通过属性访问，例如 `Backend.NCCL`。
+
+此类还可以直接调用来解析字符串，例如，`Backend(backend_str)` 将检查 `backend_str` 是否有效，如果有效，返回解析后的小写字符串。它还接受大写字符串，例如，`Backend("GLOO")` 将返回 `"gloo"`。
+
+---
+
+#### 注意：
+条目 `Backend.UNDEFINED` 存在，但仅作为某些字段的初始值。用户不应直接使用它，也不应假设它的存在。
