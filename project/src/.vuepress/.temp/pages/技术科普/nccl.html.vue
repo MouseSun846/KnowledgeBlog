@@ -202,6 +202,215 @@ NVIDIA 集体通信库（NCCL，发音为“Nickel”）是一个库，提供拓
 </ul>
 </li>
 </ul>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>def get_group_rank(group: ProcessGroup, global_rank: int) -> int:</span></span>
+<span class="line"><span>    """</span></span>
+<span class="line"><span>    Translate a global rank into a group rank.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    ``global_rank`` must be part of ``group`` otherwise this raises RuntimeError.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    Args:</span></span>
+<span class="line"><span>        group (ProcessGroup): ProcessGroup to find the relative rank.</span></span>
+<span class="line"><span>        global_rank (int): Global rank to query.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    Returns:</span></span>
+<span class="line"><span>        Group rank of ``global_rank`` relative to ``group``</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    N.B. calling this function on the default process group returns identity</span></span>
+<span class="line"><span>    """</span></span>
+<span class="line"><span>    if group is GroupMember.WORLD:</span></span>
+<span class="line"><span>        return global_rank</span></span>
+<span class="line"><span>    if group not in _world.pg_group_ranks:</span></span>
+<span class="line"><span>        raise ValueError(</span></span>
+<span class="line"><span>            f"Group {group} is not registered, please create group with torch.distributed.new_group API"</span></span>
+<span class="line"><span>        )</span></span>
+<span class="line"><span>    group_ranks = _world.pg_group_ranks[group]</span></span>
+<span class="line"><span>    if global_rank not in group_ranks:</span></span>
+<span class="line"><span>        raise ValueError(f"Global rank {global_rank} is not part of group {group}")</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    return group_ranks[global_rank]</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这段代码的主要功能是将一个全局的 rank 转换为在某个进程组中的 rank。它实现了在分布式训练中，通过全局 rank 查询某个特定进程组内的相对 rank。如果 <code v-pre>global_rank</code> 不在给定的进程组 <code v-pre>group</code> 中，该函数会抛出 <code v-pre>ValueError</code> 异常。</p>
+<h3 id="具体工作原理" tabindex="-1"><a class="header-anchor" href="#具体工作原理"><span>具体工作原理</span></a></h3>
+<ol>
+<li>
+<p><strong>判断是否为默认进程组</strong>：</p>
+<ul>
+<li>如果 <code v-pre>group</code> 是默认的进程组 <code v-pre>GroupMember.WORLD</code>，则直接返回 <code v-pre>global_rank</code>，因为默认进程组中的 rank 就是全局 rank，保持不变。</li>
+</ul>
+</li>
+<li>
+<p><strong>检查组是否注册</strong>：</p>
+<ul>
+<li>如果 <code v-pre>group</code> 没有在 <code v-pre>_world.pg_group_ranks</code> 中找到，则抛出异常。<code v-pre>_world.pg_group_ranks</code> 存储了所有创建的进程组及其对应的 ranks。</li>
+</ul>
+</li>
+<li>
+<p><strong>检查全局 rank 是否在该组中</strong>：</p>
+<ul>
+<li>如果 <code v-pre>global_rank</code> 不在 <code v-pre>group_ranks</code> 列表中，抛出异常。<code v-pre>group_ranks</code> 保存了 <code v-pre>group</code> 中的全局 rank 映射。</li>
+</ul>
+</li>
+<li>
+<p><strong>返回相对 rank</strong>：</p>
+<ul>
+<li>最终根据 <code v-pre>group_ranks</code> 返回 <code v-pre>global_rank</code> 在 <code v-pre>group</code> 中的相对 rank。</li>
+</ul>
+</li>
+</ol>
+<h3 id="参数说明" tabindex="-1"><a class="header-anchor" href="#参数说明"><span>参数说明：</span></a></h3>
+<ul>
+<li><code v-pre>group (ProcessGroup)</code>：PyTorch 分布式的进程组，通常由 <code v-pre>torch.distributed.new_group</code> 创建。</li>
+<li><code v-pre>global_rank (int)</code>：全局 rank 值，通常是指分布式训练中全局进程的编号。</li>
+</ul>
+<h3 id="返回" tabindex="-1"><a class="header-anchor" href="#返回"><span>返回：</span></a></h3>
+<ul>
+<li>返回值是 <code v-pre>global_rank</code> 在指定 <code v-pre>group</code> 中的 rank。</li>
+</ul>
+<h3 id="代码解释" tabindex="-1"><a class="header-anchor" href="#代码解释"><span>代码解释：</span></a></h3>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">if</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> group </span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">is</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> GroupMember.</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">WORLD</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">    return</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> global_rank</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><ul>
+<li>这段代码检查传入的 <code v-pre>group</code> 是否是默认的全局进程组。如果是的话，<code v-pre>global_rank</code> 和相对 rank 是一致的，直接返回。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">if</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> group </span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">not</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD"> in</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> _world.pg_group_ranks:</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">    raise</span><span style="--shiki-light:#005CC5;--shiki-dark:#ABB2BF"> ValueError</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">        f</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"Group </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">{</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">group</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">}</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> is not registered, please create group with torch.distributed.new_group API"</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    )</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><ul>
+<li>这里检查是否传入的 <code v-pre>group</code> 已经被注册到 <code v-pre>_world.pg_group_ranks</code> 中。如果没有注册，则抛出 <code v-pre>ValueError</code>，并提示用户需要通过 <code v-pre>torch.distributed.new_group</code> 来创建该组。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">group_ranks </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> _world.pg_group_ranks[group]</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">if</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> global_rank </span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">not</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD"> in</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> group_ranks:</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">    raise</span><span style="--shiki-light:#005CC5;--shiki-dark:#ABB2BF"> ValueError</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">f</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"Global rank </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">{</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">global_rank</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">}</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> is not part of group </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">{</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">group</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">}</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><ul>
+<li>这段代码从 <code v-pre>_world.pg_group_ranks</code> 获取当前 <code v-pre>group</code> 的所有全局 rank。如果 <code v-pre>global_rank</code> 不在该组中，则抛出异常。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">return</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> group_ranks[global_rank]</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>最终返回 <code v-pre>global_rank</code> 在 <code v-pre>group</code> 中的相对 rank。</li>
+</ul>
+<h3 id="应用场景" tabindex="-1"><a class="header-anchor" href="#应用场景"><span>应用场景</span></a></h3>
+<p>此功能非常适用于在分布式训练中处理多个进程组的情况，用户可以轻松找到某个全局 rank 在特定组内的 rank，从而进行更细粒度的进程控制或通信。</p>
+<h2 id="torch-cuda-nccl-py" tabindex="-1"><a class="header-anchor" href="#torch-cuda-nccl-py"><span>torch/cuda/nccl.py</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span># `output` used to be `outputs`, taking in a list of tensors. So we have two</span></span>
+<span class="line"><span># arguments for BC reasons.</span></span>
+<span class="line"><span>def reduce(</span></span>
+<span class="line"><span>    inputs: Sequence[torch.Tensor],</span></span>
+<span class="line"><span>    output: Optional[Union[torch.Tensor, Sequence[torch.Tensor]]] = None,</span></span>
+<span class="line"><span>    root: int = 0,</span></span>
+<span class="line"><span>    op: int = SUM,</span></span>
+<span class="line"><span>    streams: Optional[Sequence[torch.cuda.Stream]] = None,</span></span>
+<span class="line"><span>    comms=None,</span></span>
+<span class="line"><span>    *,</span></span>
+<span class="line"><span>    outputs: Optional[Sequence[torch.Tensor]] = None,</span></span>
+<span class="line"><span>) -> None:</span></span>
+<span class="line"><span>    _check_sequence_type(inputs)</span></span>
+<span class="line"><span>    _output: torch.Tensor</span></span>
+<span class="line"><span>    if outputs is not None:</span></span>
+<span class="line"><span>        if output is not None:</span></span>
+<span class="line"><span>            raise ValueError(</span></span>
+<span class="line"><span>                "'output' and 'outputs' can not be both specified. 'outputs' is deprecated in "</span></span>
+<span class="line"><span>                "favor of 'output', taking in a single output tensor. The signature of reduce is: "</span></span>
+<span class="line"><span>                "reduce(inputs, output=None, root=0, op=SUM, streams=None, comms=None)."</span></span>
+<span class="line"><span>            )</span></span>
+<span class="line"><span>        else:</span></span>
+<span class="line"><span>            warnings.warn(</span></span>
+<span class="line"><span>                "`nccl.reduce` with an output tensor list is deprecated. "</span></span>
+<span class="line"><span>                "Please specify a single output tensor with argument 'output' instead instead.",</span></span>
+<span class="line"><span>                FutureWarning,</span></span>
+<span class="line"><span>                stacklevel=2,</span></span>
+<span class="line"><span>            )</span></span>
+<span class="line"><span>            _output = outputs[root]</span></span>
+<span class="line"><span>    elif not isinstance(output, torch.Tensor) and isinstance(</span></span>
+<span class="line"><span>        output, collections.abc.Sequence</span></span>
+<span class="line"><span>    ):</span></span>
+<span class="line"><span>        # User called old API with positional arguments of list of output tensors.</span></span>
+<span class="line"><span>        warnings.warn(</span></span>
+<span class="line"><span>            "nccl.reduce with an output tensor list is deprecated. "</span></span>
+<span class="line"><span>            "Please specify a single output tensor.",</span></span>
+<span class="line"><span>            FutureWarning,</span></span>
+<span class="line"><span>            stacklevel=2,</span></span>
+<span class="line"><span>        )</span></span>
+<span class="line"><span>        _output = output[root]</span></span>
+<span class="line"><span>    else:</span></span>
+<span class="line"><span>        _output = inputs[root] if output is None else output</span></span>
+<span class="line"><span>    torch._C._nccl_reduce(inputs, _output, root, op, streams, comms)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这段代码实现了 <code v-pre>reduce</code> 函数的分布式操作，用于将多个 GPU 的张量根据某种操作（如求和）合并到一个目标张量中，特别是在使用 PyTorch 的 NCCL 后端时。这是常见的分布式通信操作，例如在多卡训练中汇总各个设备上的张量。</p>
+<h3 id="核心功能" tabindex="-1"><a class="header-anchor" href="#核心功能"><span>核心功能</span></a></h3>
+<p>该函数通过调用 <code v-pre>torch._C._nccl_reduce</code> 来实现具体的 <code v-pre>reduce</code> 操作，该函数执行 GPU 间张量的归约（如求和、乘积等操作），并将结果存储在某个 root 节点的目标张量中。</p>
+<h3 id="参数解析" tabindex="-1"><a class="header-anchor" href="#参数解析"><span>参数解析</span></a></h3>
+<ol>
+<li>
+<p><strong>inputs</strong>:</p>
+<ul>
+<li><code v-pre>Sequence[torch.Tensor]</code>，表示输入的张量序列，来自不同的 GPU。每个张量包含设备上局部计算的结果。</li>
+</ul>
+</li>
+<li>
+<p><strong>output</strong>:</p>
+<ul>
+<li><code v-pre>Optional[Union[torch.Tensor, Sequence[torch.Tensor]]]</code>，可选参数，用于存放归约操作的结果。如果没有提供，将使用 root 节点上的输入张量。</li>
+</ul>
+</li>
+<li>
+<p><strong>root</strong>:</p>
+<ul>
+<li><code v-pre>int</code>，表示哪个 GPU 作为 root，将接收所有 GPU 的归约结果。默认是 <code v-pre>0</code>。</li>
+</ul>
+</li>
+<li>
+<p><strong>op</strong>:</p>
+<ul>
+<li><code v-pre>int</code>，指定归约操作，默认为 <code v-pre>SUM</code>（加法）。其它可能的操作有 <code v-pre>PROD</code>（乘法）、<code v-pre>MIN</code>（最小值）、<code v-pre>MAX</code>（最大值）等。</li>
+</ul>
+</li>
+<li>
+<p><strong>streams</strong>:</p>
+<ul>
+<li><code v-pre>Optional[Sequence[torch.cuda.Stream]]</code>，可以为每个 GPU 提供 CUDA 流，方便在不同 CUDA 流上进行归约操作。默认为空，即使用默认流。</li>
+</ul>
+</li>
+<li>
+<p><strong>comms</strong>:</p>
+<ul>
+<li>可选的通信器对象，负责管理 GPU 间的通信。</li>
+</ul>
+</li>
+<li>
+<p><strong>outputs</strong>:</p>
+<ul>
+<li><code v-pre>Optional[Sequence[torch.Tensor]]</code>，这是一个过时参数，用于指定多个输出张量的列表。新的 API 只需要传入一个单一的 <code v-pre>output</code>，如果同时传入 <code v-pre>outputs</code> 和 <code v-pre>output</code>，则会报错。</li>
+</ul>
+</li>
+</ol>
+<h3 id="核心逻辑" tabindex="-1"><a class="header-anchor" href="#核心逻辑"><span>核心逻辑</span></a></h3>
+<ol>
+<li>
+<p><strong>处理参数的兼容性</strong>:</p>
+<ul>
+<li>首先检查 <code v-pre>inputs</code> 的类型是否正确。接着处理参数 <code v-pre>outputs</code> 和 <code v-pre>output</code> 的兼容性，确保两者不会同时传入。如果用户使用了旧版 API (<code v-pre>outputs</code>)，会抛出警告，提醒用户该功能将被弃用。</li>
+</ul>
+</li>
+<li>
+<p><strong>处理旧 API</strong>:</p>
+<ul>
+<li>如果 <code v-pre>output</code> 是一个张量序列而不是单个张量，函数会继续支持这种旧的用法，但是同样会抛出警告，提示用户迁移到新的 API。</li>
+</ul>
+</li>
+<li>
+<p><strong>调用底层 NCCL 函数</strong>:</p>
+<ul>
+<li>最后，函数调用 <code v-pre>torch._C._nccl_reduce</code> 执行真正的张量归约操作，使用给定的 <code v-pre>inputs</code>、<code v-pre>_output</code>、<code v-pre>root</code>、<code v-pre>op</code> 和其他可选参数。</li>
+</ul>
+</li>
+</ol>
+<h3 id="示例" tabindex="-1"><a class="header-anchor" href="#示例"><span>示例</span></a></h3>
+<p>假设我们在分布式训练中使用 4 个 GPU，执行 <code v-pre>reduce</code> 操作：</p>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">inputs </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> [torch.</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">tensor</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">([</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">1.0</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">]).</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">cuda</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(i) </span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">for</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> i </span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">in</span><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2"> range</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">4</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)]  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># 各个 GPU 上的张量</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">output </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> torch.</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">tensor</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">([</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">0.0</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">]).</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">cuda</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">0</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># root GPU 上的输出张量</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#E36209;--shiki-dark:#E06C75">reduce</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(inputs, </span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">output</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">output, </span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">root</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">0</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2">print</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(output)  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># 输出归约后的结果</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这段代码将各个 GPU 上的张量相加，并将结果存储在 root GPU（GPU 0）的 <code v-pre>output</code> 张量中。</p>
 </div></template>
 
 

@@ -220,3 +220,186 @@ DESKTOP-P54EAF3:58239:58239 [0] NCCL INFO comm 0x559205409610 rank 0 nranks 1 cu
   * `-C,--report_cputime <0/1>` 报告 CPU 时间而非延迟。默认值：0。
   * `-R,--local_register <1/0>` 在发送/接收缓冲区上启用本地缓冲区注册。默认值：0。
   * `-T,--timeout <超时时间（秒）>` 在指定秒数后对每个测试进行超时。默认值：禁用。
+
+
+```
+def get_group_rank(group: ProcessGroup, global_rank: int) -> int:
+    """
+    Translate a global rank into a group rank.
+
+    ``global_rank`` must be part of ``group`` otherwise this raises RuntimeError.
+
+    Args:
+        group (ProcessGroup): ProcessGroup to find the relative rank.
+        global_rank (int): Global rank to query.
+
+    Returns:
+        Group rank of ``global_rank`` relative to ``group``
+
+    N.B. calling this function on the default process group returns identity
+    """
+    if group is GroupMember.WORLD:
+        return global_rank
+    if group not in _world.pg_group_ranks:
+        raise ValueError(
+            f"Group {group} is not registered, please create group with torch.distributed.new_group API"
+        )
+    group_ranks = _world.pg_group_ranks[group]
+    if global_rank not in group_ranks:
+        raise ValueError(f"Global rank {global_rank} is not part of group {group}")
+
+    return group_ranks[global_rank]
+```
+
+这段代码的主要功能是将一个全局的 rank 转换为在某个进程组中的 rank。它实现了在分布式训练中，通过全局 rank 查询某个特定进程组内的相对 rank。如果 `global_rank` 不在给定的进程组 `group` 中，该函数会抛出 `ValueError` 异常。
+
+### 具体工作原理
+
+1. **判断是否为默认进程组**：
+   - 如果 `group` 是默认的进程组 `GroupMember.WORLD`，则直接返回 `global_rank`，因为默认进程组中的 rank 就是全局 rank，保持不变。
+   
+2. **检查组是否注册**：
+   - 如果 `group` 没有在 `_world.pg_group_ranks` 中找到，则抛出异常。`_world.pg_group_ranks` 存储了所有创建的进程组及其对应的 ranks。
+
+3. **检查全局 rank 是否在该组中**：
+   - 如果 `global_rank` 不在 `group_ranks` 列表中，抛出异常。`group_ranks` 保存了 `group` 中的全局 rank 映射。
+
+4. **返回相对 rank**：
+   - 最终根据 `group_ranks` 返回 `global_rank` 在 `group` 中的相对 rank。
+
+### 参数说明：
+- `group (ProcessGroup)`：PyTorch 分布式的进程组，通常由 `torch.distributed.new_group` 创建。
+- `global_rank (int)`：全局 rank 值，通常是指分布式训练中全局进程的编号。
+
+### 返回：
+- 返回值是 `global_rank` 在指定 `group` 中的 rank。
+
+### 代码解释：
+```python
+if group is GroupMember.WORLD:
+    return global_rank
+```
+- 这段代码检查传入的 `group` 是否是默认的全局进程组。如果是的话，`global_rank` 和相对 rank 是一致的，直接返回。
+
+```python
+if group not in _world.pg_group_ranks:
+    raise ValueError(
+        f"Group {group} is not registered, please create group with torch.distributed.new_group API"
+    )
+```
+- 这里检查是否传入的 `group` 已经被注册到 `_world.pg_group_ranks` 中。如果没有注册，则抛出 `ValueError`，并提示用户需要通过 `torch.distributed.new_group` 来创建该组。
+
+```python
+group_ranks = _world.pg_group_ranks[group]
+if global_rank not in group_ranks:
+    raise ValueError(f"Global rank {global_rank} is not part of group {group}")
+```
+- 这段代码从 `_world.pg_group_ranks` 获取当前 `group` 的所有全局 rank。如果 `global_rank` 不在该组中，则抛出异常。
+
+```python
+return group_ranks[global_rank]
+```
+- 最终返回 `global_rank` 在 `group` 中的相对 rank。
+
+### 应用场景
+此功能非常适用于在分布式训练中处理多个进程组的情况，用户可以轻松找到某个全局 rank 在特定组内的 rank，从而进行更细粒度的进程控制或通信。
+
+
+## torch/cuda/nccl.py
+```
+# `output` used to be `outputs`, taking in a list of tensors. So we have two
+# arguments for BC reasons.
+def reduce(
+    inputs: Sequence[torch.Tensor],
+    output: Optional[Union[torch.Tensor, Sequence[torch.Tensor]]] = None,
+    root: int = 0,
+    op: int = SUM,
+    streams: Optional[Sequence[torch.cuda.Stream]] = None,
+    comms=None,
+    *,
+    outputs: Optional[Sequence[torch.Tensor]] = None,
+) -> None:
+    _check_sequence_type(inputs)
+    _output: torch.Tensor
+    if outputs is not None:
+        if output is not None:
+            raise ValueError(
+                "'output' and 'outputs' can not be both specified. 'outputs' is deprecated in "
+                "favor of 'output', taking in a single output tensor. The signature of reduce is: "
+                "reduce(inputs, output=None, root=0, op=SUM, streams=None, comms=None)."
+            )
+        else:
+            warnings.warn(
+                "`nccl.reduce` with an output tensor list is deprecated. "
+                "Please specify a single output tensor with argument 'output' instead instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            _output = outputs[root]
+    elif not isinstance(output, torch.Tensor) and isinstance(
+        output, collections.abc.Sequence
+    ):
+        # User called old API with positional arguments of list of output tensors.
+        warnings.warn(
+            "nccl.reduce with an output tensor list is deprecated. "
+            "Please specify a single output tensor.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        _output = output[root]
+    else:
+        _output = inputs[root] if output is None else output
+    torch._C._nccl_reduce(inputs, _output, root, op, streams, comms)
+```
+这段代码实现了 `reduce` 函数的分布式操作，用于将多个 GPU 的张量根据某种操作（如求和）合并到一个目标张量中，特别是在使用 PyTorch 的 NCCL 后端时。这是常见的分布式通信操作，例如在多卡训练中汇总各个设备上的张量。
+
+### 核心功能
+该函数通过调用 `torch._C._nccl_reduce` 来实现具体的 `reduce` 操作，该函数执行 GPU 间张量的归约（如求和、乘积等操作），并将结果存储在某个 root 节点的目标张量中。
+
+### 参数解析
+
+1. **inputs**: 
+   - `Sequence[torch.Tensor]`，表示输入的张量序列，来自不同的 GPU。每个张量包含设备上局部计算的结果。
+
+2. **output**:
+   - `Optional[Union[torch.Tensor, Sequence[torch.Tensor]]]`，可选参数，用于存放归约操作的结果。如果没有提供，将使用 root 节点上的输入张量。
+
+3. **root**:
+   - `int`，表示哪个 GPU 作为 root，将接收所有 GPU 的归约结果。默认是 `0`。
+
+4. **op**:
+   - `int`，指定归约操作，默认为 `SUM`（加法）。其它可能的操作有 `PROD`（乘法）、`MIN`（最小值）、`MAX`（最大值）等。
+
+5. **streams**:
+   - `Optional[Sequence[torch.cuda.Stream]]`，可以为每个 GPU 提供 CUDA 流，方便在不同 CUDA 流上进行归约操作。默认为空，即使用默认流。
+
+6. **comms**:
+   - 可选的通信器对象，负责管理 GPU 间的通信。
+
+7. **outputs**:
+   - `Optional[Sequence[torch.Tensor]]`，这是一个过时参数，用于指定多个输出张量的列表。新的 API 只需要传入一个单一的 `output`，如果同时传入 `outputs` 和 `output`，则会报错。
+
+### 核心逻辑
+
+1. **处理参数的兼容性**:
+   - 首先检查 `inputs` 的类型是否正确。接着处理参数 `outputs` 和 `output` 的兼容性，确保两者不会同时传入。如果用户使用了旧版 API (`outputs`)，会抛出警告，提醒用户该功能将被弃用。
+
+2. **处理旧 API**:
+   - 如果 `output` 是一个张量序列而不是单个张量，函数会继续支持这种旧的用法，但是同样会抛出警告，提示用户迁移到新的 API。
+
+3. **调用底层 NCCL 函数**:
+   - 最后，函数调用 `torch._C._nccl_reduce` 执行真正的张量归约操作，使用给定的 `inputs`、`_output`、`root`、`op` 和其他可选参数。
+
+### 示例
+
+假设我们在分布式训练中使用 4 个 GPU，执行 `reduce` 操作：
+
+```python
+inputs = [torch.tensor([1.0]).cuda(i) for i in range(4)]  # 各个 GPU 上的张量
+output = torch.tensor([0.0]).cuda(0)  # root GPU 上的输出张量
+
+reduce(inputs, output=output, root=0)
+print(output)  # 输出归约后的结果
+```
+
+这段代码将各个 GPU 上的张量相加，并将结果存储在 root GPU（GPU 0）的 `output` 张量中。    

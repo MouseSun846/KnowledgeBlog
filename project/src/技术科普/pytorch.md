@@ -327,3 +327,24 @@ class Backend(str):
 
 #### 注意：
 条目 `Backend.UNDEFINED` 存在，但仅作为某些字段的初始值。用户不应直接使用它，也不应假设它的存在。
+
+
+这个 `backend_capability` 字典用于定义不同后端的支持能力。它以后端名称作为键，以支持的设备类型列表作为值。
+
+例如：
+- `GLOO` 后端支持 `cpu` 和 `cuda`。
+- `NCCL` 后端只支持 `cuda`。
+- `UCC` 和 `MPI` 后端都支持 `cpu` 和 `cuda`。
+
+
+
+```python
+backend_capability: Dict[str, List[str]] = {
+    GLOO: ["cpu", "cuda"],  # GLOO 后端支持 CPU 和 CUDA
+    NCCL: ["cuda"],         # NCCL 后端只支持 CUDA
+    UCC: ["cpu", "cuda"],   # UCC 后端支持 CPU 和 CUDA
+    MPI: ["cpu", "cuda"],   # MPI 后端支持 CPU 和 CUDA
+}
+```
+
+这个字典可以用于在代码中根据所选择的后端来决定可以在哪些设备上运行操作。

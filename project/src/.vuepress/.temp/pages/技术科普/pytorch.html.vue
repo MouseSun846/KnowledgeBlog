@@ -327,6 +327,20 @@ MPI-IO 是 MPI 的一个子集，专门用于并行文件输入输出操作。MP
 <hr>
 <h4 id="注意" tabindex="-1"><a class="header-anchor" href="#注意"><span>注意：</span></a></h4>
 <p>条目 <code v-pre>Backend.UNDEFINED</code> 存在，但仅作为某些字段的初始值。用户不应直接使用它，也不应假设它的存在。</p>
+<p>这个 <code v-pre>backend_capability</code> 字典用于定义不同后端的支持能力。它以后端名称作为键，以支持的设备类型列表作为值。</p>
+<p>例如：</p>
+<ul>
+<li><code v-pre>GLOO</code> 后端支持 <code v-pre>cpu</code> 和 <code v-pre>cuda</code>。</li>
+<li><code v-pre>NCCL</code> 后端只支持 <code v-pre>cuda</code>。</li>
+<li><code v-pre>UCC</code> 和 <code v-pre>MPI</code> 后端都支持 <code v-pre>cpu</code> 和 <code v-pre>cuda</code>。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">backend_capability: Dict[</span><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2">str</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, List[</span><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2">str</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">]] </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">    GLOO</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: [</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cpu"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cuda"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">],  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># GLOO 后端支持 CPU 和 CUDA</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">    NCCL</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: [</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cuda"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">],         </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># NCCL 后端只支持 CUDA</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">    UCC</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: [</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cpu"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cuda"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">],   </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># UCC 后端支持 CPU 和 CUDA</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">    MPI</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">: [</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cpu"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"cuda"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">],   </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># MPI 后端支持 CPU 和 CUDA</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这个字典可以用于在代码中根据所选择的后端来决定可以在哪些设备上运行操作。</p>
 </div></template>
 
 
