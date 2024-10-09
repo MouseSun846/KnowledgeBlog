@@ -411,6 +411,247 @@ NVIDIA 集体通信库（NCCL，发音为“Nickel”）是一个库，提供拓
 <span class="line"><span style="--shiki-light:#E36209;--shiki-dark:#E06C75">reduce</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(inputs, </span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">output</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">output, </span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">root</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">0</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span>
 <span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2">print</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(output)  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># 输出归约后的结果</span></span></code></pre>
 <div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这段代码将各个 GPU 上的张量相加，并将结果存储在 root GPU（GPU 0）的 <code v-pre>output</code> 张量中。</p>
+<h2 id="torch-csrc-cuda-python-nccl-cpp" tabindex="-1"><a class="header-anchor" href="#torch-csrc-cuda-python-nccl-cpp"><span>torch/csrc/cuda/python_nccl.cpp</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>PyObject* THCPModule_nccl_reduce(PyObject* self, PyObject* args) {</span></span>
+<span class="line"><span>  HANDLE_TH_ERRORS</span></span>
+<span class="line"><span>  PyObject *_inputs = nullptr, *_output = nullptr, *_streams = nullptr,</span></span>
+<span class="line"><span>           *_comms = nullptr;</span></span>
+<span class="line"><span>  int root = 0, op = 0;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  if (!PyArg_ParseTuple(</span></span>
+<span class="line"><span>          args, "OOiiOO", &#x26;_inputs, &#x26;_output, &#x26;root, &#x26;op, &#x26;_streams, &#x26;_comms)) {</span></span>
+<span class="line"><span>    THPUtils_invalidArguments(</span></span>
+<span class="line"><span>        args,</span></span>
+<span class="line"><span>        nullptr,</span></span>
+<span class="line"><span>        "nccl_reduce",</span></span>
+<span class="line"><span>        1,</span></span>
+<span class="line"><span>        "(sequence[Tensor] inputs, Tensor output, int root,"</span></span>
+<span class="line"><span>        " int op, sequence[torch.cuda.Stream or None]");</span></span>
+<span class="line"><span>    return nullptr;</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  std::vector&#x3C;at::Tensor> inputs = extract_tensors(_inputs);</span></span>
+<span class="line"><span>  auto output = extract_tensor(_output);</span></span>
+<span class="line"><span>  std::vector&#x3C;std::optional&#x3C;at::cuda::CUDAStream>> streams =</span></span>
+<span class="line"><span>      unpack_streams(_streams, inputs.size());</span></span>
+<span class="line"><span>  auto user_comms = unpack_comms(_comms, inputs.size());</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  {</span></span>
+<span class="line"><span>    pybind11::gil_scoped_release no_gil;</span></span>
+<span class="line"><span>    torch::cuda::nccl::reduce(inputs, output, root, op, streams, user_comms);</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  Py_RETURN_NONE;</span></span>
+<span class="line"><span>  END_HANDLE_TH_ERRORS</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>上述代码是 PyTorch 中一个 C++ 函数，它通过 Python 的 C API 实现了 NCCL <code v-pre>reduce</code> 操作的接口。这个函数可以在 Python 中调用，从而完成 NCCL 的 <code v-pre>reduce</code> 操作。NCCL（NVIDIA Collective Communications Library）是一种用于多 GPU 间高效通信的库，特别适用于深度学习框架中的集体通信操作，如 <code v-pre>reduce</code>、<code v-pre>allreduce</code> 等。</p>
+<h3 id="代码解析" tabindex="-1"><a class="header-anchor" href="#代码解析"><span>代码解析</span></a></h3>
+<ol>
+<li>
+<p><strong>函数定义</strong>:</p>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">PyObject</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">*</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF"> THCPModule_nccl_reduce</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">PyObject</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">*</span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"> self</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">PyObject</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">*</span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"> args</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>这是一个 Python C API 的函数，<code v-pre>PyObject*</code> 是 Python 对象的通用类型，<code v-pre>self</code> 通常指模块对象，而 <code v-pre>args</code> 是从 Python 传递给这个函数的参数。</p>
+</li>
+<li>
+<p><strong>参数解析</strong>:</p>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">if</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">!</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">PyArg_ParseTuple</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">        args, </span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"OOiiOO"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">_inputs, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">_output, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">root, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">op, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">_streams, </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">&#x26;</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">_comms))</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div></div></div><p><code v-pre>PyArg_ParseTuple</code> 用于从 Python 参数 <code v-pre>args</code> 中解析出输入的值。格式化字符串 <code v-pre>&quot;OOiiOO&quot;</code> 表示该函数期望接收的参数类型依次是：</p>
+<ul>
+<li><code v-pre>O</code>: Python 对象（<code v-pre>_inputs</code>）</li>
+<li><code v-pre>O</code>: Python 对象（<code v-pre>_output</code>）</li>
+<li><code v-pre>i</code>: 整数（<code v-pre>root</code>，指定哪个 GPU 是 root 节点）</li>
+<li><code v-pre>i</code>: 整数（<code v-pre>op</code>，指定 NCCL 操作类型，如 <code v-pre>SUM</code> 或 <code v-pre>MAX</code> 等）</li>
+<li><code v-pre>O</code>: Python 对象（<code v-pre>_streams</code>）</li>
+<li><code v-pre>O</code>: Python 对象（<code v-pre>_comms</code>，通信对象）</li>
+</ul>
+<p>如果参数无法解析，将返回 <code v-pre>nullptr</code>，并抛出错误。</p>
+</li>
+<li>
+<p><strong>参数转换</strong>:</p>
+<ul>
+<li><code v-pre>extract_tensors(_inputs)</code> 和 <code v-pre>extract_tensor(_output)</code> 是从 Python 对象中提取张量的自定义函数。</li>
+<li><code v-pre>unpack_streams(_streams, inputs.size())</code> 是将 <code v-pre>streams</code> 从 Python 对象中解包成 <code v-pre>CUDAStream</code> 对象。</li>
+<li><code v-pre>unpack_comms(_comms, inputs.size())</code> 同样用于将通信器对象解包。</li>
+</ul>
+</li>
+<li>
+<p><strong>释放 GIL 锁</strong>:</p>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#ABB2BF">pybind11</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">::gil_scoped_release no_gil;</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p><code v-pre>pybind11::gil_scoped_release</code> 用于释放 Python 的全局解释器锁（GIL），允许并行执行。因为 NCCL 操作是 GPU 通信操作，可能耗时较长，所以在执行这些操作前释放 GIL 是必要的。</p>
+</li>
+<li>
+<p><strong>调用 NCCL <code v-pre>reduce</code></strong>:</p>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">torch</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">::</span><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">cuda</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">::</span><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B">nccl</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">::</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">reduce</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(inputs, output, root, op, streams, user_comms);</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>调用了 PyTorch CUDA 模块中的 NCCL <code v-pre>reduce</code> 函数，将输入张量 <code v-pre>inputs</code> 通过 NCCL 通信操作聚合成 <code v-pre>output</code> 张量，<code v-pre>root</code> 指定了哪块 GPU 是主节点（负责聚合结果），<code v-pre>op</code> 指定了操作类型，如 <code v-pre>SUM</code>。</p>
+</li>
+<li>
+<p><strong>返回 <code v-pre>None</code></strong>:</p>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">Py_RETURN_NONE;</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><p>函数完成后，返回 <code v-pre>None</code>，表示没有返回值。</p>
+</li>
+<li>
+<p><strong>错误处理</strong>:</p>
+<ul>
+<li><code v-pre>HANDLE_TH_ERRORS</code> 和 <code v-pre>END_HANDLE_TH_ERRORS</code> 是用于捕获和处理 C++ 异常的宏。如果在函数执行过程中发生异常，它们将自动捕捉并将错误报告给 Python 层。</li>
+</ul>
+</li>
+</ol>
+<h3 id="总结" tabindex="-1"><a class="header-anchor" href="#总结"><span>总结</span></a></h3>
+<p>此函数的作用是在 Python 层提供了 NCCL <code v-pre>reduce</code> 操作的接口，允许用户在 Python 中调用 NCCL 底层的 C++ 实现，以高效地在多 GPU 间进行通信和数据聚合。整个过程中，C++ 代码负责参数解析、执行 NCCL 操作并返回结果，而 Python 代码则以封装的方式调用这些底层实现。这种模式在深度学习框架中非常常见，尤其是在需要加速的分布式训练场景下。</p>
+<h2 id="torch-csrc-cuda-module-cpp" tabindex="-1"><a class="header-anchor" href="#torch-csrc-cuda-module-cpp"><span>torch/csrc/cuda/Module.cpp</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>#ifdef USE_NCCL</span></span>
+<span class="line"><span>    {"_nccl_version", THCPModule_nccl_version, METH_NOARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_version_suffix",</span></span>
+<span class="line"><span>     THCPModule_nccl_version_suffix,</span></span>
+<span class="line"><span>     METH_NOARGS,</span></span>
+<span class="line"><span>     nullptr},</span></span>
+<span class="line"><span>    {"_nccl_unique_id", THCPModule_nccl_unique_id, METH_NOARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_init_rank", THCPModule_nccl_init_rank, METH_VARARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_reduce", THCPModule_nccl_reduce, METH_VARARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_all_reduce", THCPModule_nccl_all_reduce, METH_VARARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_broadcast", THCPModule_nccl_broadcast, METH_VARARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_all_gather", THCPModule_nccl_all_gather, METH_VARARGS, nullptr},</span></span>
+<span class="line"><span>    {"_nccl_reduce_scatter",</span></span>
+<span class="line"><span>     THCPModule_nccl_reduce_scatter,</span></span>
+<span class="line"><span>     METH_VARARGS,</span></span>
+<span class="line"><span>     nullptr},</span></span>
+<span class="line"><span>#endif</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这段代码是 PyTorch 的 C++ 代码片段，主要用于注册与 NCCL（NVIDIA Collective Communications Library）相关的 Python API 函数。通过这些函数，用户可以在 Python 中调用 NCCL 的功能，如初始化 NCCL、执行集合操作等。下面是对代码的逐行分析：</p>
+<h3 id="代码结构和功能" tabindex="-1"><a class="header-anchor" href="#代码结构和功能"><span>代码结构和功能</span></a></h3>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">#ifdef</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF"> USE_NCCL</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>这一行使用条件编译指令来检查是否启用了 NCCL 支持。如果编译时定义了 <code v-pre>USE_NCCL</code>，则编译器会包含以下代码块。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_version"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_version, METH_NOARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>这一行注册了 <code v-pre>_nccl_version</code> 函数，该函数将返回 NCCL 的版本信息。<code v-pre>METH_NOARGS</code> 表示该函数不接受任何参数。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_version_suffix"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_version_suffix, METH_NOARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_version_suffix</code> 函数，返回 NCCL 版本的后缀。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_unique_id"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_unique_id, METH_NOARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_unique_id</code> 函数，用于生成 NCCL 的唯一标识符（Unique ID）。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_init_rank"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_init_rank, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_init_rank</code> 函数，接受参数并用于初始化 NCCL 通信。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_reduce"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_reduce, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_reduce</code> 函数，用于执行 NCCL 的 reduce 操作，接受一组输入张量和输出张量。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_all_reduce"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_all_reduce, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_all_reduce</code> 函数，用于执行所有进程的 reduce 操作。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_broadcast"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_broadcast, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_broadcast</code> 函数，用于执行广播操作，将数据从一个进程传递到所有其他进程。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_all_gather"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_all_gather, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_all_gather</code> 函数，用于收集所有进程的数据到每个进程中。</li>
+</ul>
+<div class="language-cpp line-numbers-mode" data-highlighter="shiki" data-ext="cpp" data-title="cpp" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    {</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"_nccl_reduce_scatter"</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, THCPModule_nccl_reduce_scatter, METH_VARARGS, </span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">nullptr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">},</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>注册了 <code v-pre>_nccl_reduce_scatter</code> 函数，用于执行 reduce scatter 操作，将数据先进行 reduce，然后再分散到所有进程。</li>
+</ul>
+<h3 id="总结-1" tabindex="-1"><a class="header-anchor" href="#总结-1"><span>总结</span></a></h3>
+<p>这段代码负责将 NCCL 的相关操作函数注册到 PyTorch 的 Python 接口中。这样用户在使用 PyTorch 时，可以方便地调用这些 NCCL 的操作来进行高效的多GPU并行计算。这种设计使得 PyTorch 的 CUDA 加速功能与 NCCL 库的集体通信能力紧密集成。</p>
+<h2 id="torch-dynamo-trace-rules-py" tabindex="-1"><a class="header-anchor" href="#torch-dynamo-trace-rules-py"><span>torch_dynamo\trace_rules.py</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>def _load_obj_from_str(fully_qualified_name):</span></span>
+<span class="line"><span>    module, obj_name = fully_qualified_name.rsplit(".", maxsplit=1)</span></span>
+<span class="line"><span>    return getattr(importlib.import_module(module), obj_name)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>这个 Python 函数 <code v-pre>_load_obj_from_str</code> 用于根据一个完全限定的对象名称（通常是模块路径和对象名称的组合）动态地加载模块中的对象。下面是对该函数的逐行分析：</p>
+<h3 id="代码解析-1" tabindex="-1"><a class="header-anchor" href="#代码解析-1"><span>代码解析</span></a></h3>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">def</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF"> _load_obj_from_str</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#24292E;--shiki-dark:#D19A66;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">fully_qualified_name</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">):</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>定义了一个名为 <code v-pre>_load_obj_from_str</code> 的函数，接受一个参数 <code v-pre>fully_qualified_name</code>，这是一个字符串，包含模块路径和对象名称，例如 <code v-pre>module.submodule.ClassName</code>。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">    module, obj_name </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF"> fully_qualified_name.</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">rsplit</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379">"."</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">, </span><span style="--shiki-light:#E36209;--shiki-dark:#E06C75;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">maxsplit</span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#D19A66">1</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>使用 <code v-pre>rsplit</code> 方法将 <code v-pre>fully_qualified_name</code> 从右侧分割成模块名和对象名。<code v-pre>maxsplit=1</code> 参数确保只分割一次，这样得到的 <code v-pre>module</code> 是模块路径，而 <code v-pre>obj_name</code> 是模块中的对象名称。</li>
+</ul>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">    return</span><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2"> getattr</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(importlib.</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">import_module</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(module), obj_name)</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><ul>
+<li>使用 <code v-pre>importlib.import_module</code> 动态导入指定的模块。</li>
+<li>使用 <code v-pre>getattr</code> 从导入的模块中获取指定的对象，返回这个对象。</li>
+</ul>
+<h3 id="示例用法" tabindex="-1"><a class="header-anchor" href="#示例用法"><span>示例用法</span></a></h3>
+<p>假设你有一个模块结构如下：</p>
+<div class="language-plaintext line-numbers-mode" data-highlighter="shiki" data-ext="plaintext" data-title="plaintext" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>my_package/</span></span>
+<span class="line"><span>    __init__.py</span></span>
+<span class="line"><span>    my_module.py</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p><code v-pre>my_module.py</code> 内容如下：</p>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">class</span><span style="--shiki-light:#6F42C1;--shiki-dark:#E5C07B"> MyClass</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">:</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">    def</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF"> greet</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#24292E;--shiki-dark:#E5C07B;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic">self</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">):</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">        return</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> "Hello, world!"</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>你可以通过以下方式加载 <code v-pre>MyClass</code>：</p>
+<div class="language-python line-numbers-mode" data-highlighter="shiki" data-ext="python" data-title="python" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">fully_qualified_name </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#032F62;--shiki-dark:#98C379"> "my_package.my_module.MyClass"</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">MyClass </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF"> _load_obj_from_str</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(fully_qualified_name)</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">instance </span><span style="--shiki-light:#D73A49;--shiki-dark:#56B6C2">=</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF"> MyClass</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">()</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#56B6C2">print</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(instance.</span><span style="--shiki-light:#24292E;--shiki-dark:#61AFEF">greet</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">())  </span><span style="--shiki-light:#6A737D;--shiki-dark:#7F848E;--shiki-light-font-style:inherit;--shiki-dark-font-style:italic"># 输出: Hello, world!</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="总结-2" tabindex="-1"><a class="header-anchor" href="#总结-2"><span>总结</span></a></h3>
+<p>这个函数的主要作用是实现动态加载模块中的对象，允许你在运行时根据字符串路径获取对象。这种方法在需要根据配置文件或用户输入来加载类或函数时非常有用。</p>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>#include &#x3C;Python.h></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>extern PyObject* initModule(void);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>#ifndef _WIN32</span></span>
+<span class="line"><span>#ifdef __cplusplus</span></span>
+<span class="line"><span>extern "C"</span></span>
+<span class="line"><span>#endif</span></span>
+<span class="line"><span>__attribute__((visibility("default"))) PyObject* PyInit__C(void);</span></span>
+<span class="line"><span>#endif</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>PyMODINIT_FUNC PyInit__C(void)</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>  return initModule();</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p><a href="https://zhuanlan.zhihu.com/p/647999983" target="_blank" rel="noopener noreferrer">python调用C/C++参考示例</a></p>
+<p>这段 C/C++ 代码片段展示了一个用于初始化 Python 扩展模块的函数实现。在 Python 中，C 扩展模块需要实现一个模块初始化函数，它会在 Python 加载模块时被调用。这段代码的主要目的是将 <code v-pre>initModule</code> 函数作为 Python 模块的初始化函数，并通过兼容不同平台的方式导出。</p>
+<h3 id="代码解析-2" tabindex="-1"><a class="header-anchor" href="#代码解析-2"><span>代码解析</span></a></h3>
+<ol>
+<li>
+<p><strong><code v-pre>extern PyObject* initModule(void);</code></strong>:</p>
+<ul>
+<li>声明了一个外部的 C 函数 <code v-pre>initModule</code>，它返回一个 <code v-pre>PyObject*</code>，用于初始化模块。这个函数可能在别的地方定义，并负责创建和初始化模块对象。</li>
+</ul>
+</li>
+<li>
+<p><strong>平台相关宏控制</strong>:</p>
+<ul>
+<li><code v-pre>#ifndef _WIN32</code>：如果不是 Windows 平台，则会编译接下来的代码，这表明这个部分主要是为非 Windows 平台准备的。</li>
+<li><code v-pre>#ifdef __cplusplus</code> 和 <code v-pre>extern &quot;C&quot;</code>：如果是在 C++ 中编译，这一部分会通过 <code v-pre>extern &quot;C&quot;</code> 指定 C 语言链接方式，确保 Python 模块能够以 C 语言的符号表被正确识别。</li>
+<li><code v-pre>__attribute__((visibility(&quot;default&quot;)))</code>：用于控制符号的可见性。它保证了 <code v-pre>PyInit__C</code> 函数在共享库中对外可见（动态链接时需要）。</li>
+</ul>
+</li>
+<li>
+<p><strong><code v-pre>PyMODINIT_FUNC PyInit__C(void)</code></strong>:</p>
+<ul>
+<li><code v-pre>PyMODINIT_FUNC</code> 是一个宏，通常定义为 <code v-pre>extern &quot;C&quot;</code>，它用于标识 Python 扩展模块的初始化函数。</li>
+<li>Python 期望扩展模块的初始化函数遵循特定的命名规范。在 Python 3 中，初始化函数的名称应为 <code v-pre>PyInit_&lt;module_name&gt;</code>，这里是 <code v-pre>PyInit__C</code>，意味着 Python 加载的模块名称为 <code v-pre>_C</code>。</li>
+<li>这个函数返回一个 <code v-pre>PyObject*</code>，即模块对象，这个对象是通过调用 <code v-pre>initModule()</code> 获得的。</li>
+</ul>
+</li>
+</ol>
+<h3 id="典型应用" tabindex="-1"><a class="header-anchor" href="#典型应用"><span>典型应用</span></a></h3>
+<p>这种模块初始化机制在 C 扩展模块中很常见，特别是在涉及到 Python 与 C/C++ 互操作时。<code v-pre>initModule()</code> 通常会调用一系列的 C API 函数来创建 Python 对象，并将它们绑定到模块的命名空间中。</p>
+<h4 id="示例解释" tabindex="-1"><a class="header-anchor" href="#示例解释"><span>示例解释</span></a></h4>
+<div class="language-c line-numbers-mode" data-highlighter="shiki" data-ext="c" data-title="c" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">PyMODINIT_FUNC </span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF">PyInit__C</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">(</span><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">void</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">)</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">{</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#C678DD">  return</span><span style="--shiki-light:#6F42C1;--shiki-dark:#61AFEF"> initModule</span><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">();</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><ul>
+<li>当 Python 导入 <code v-pre>_C</code> 模块时，Python 解释器会调用 <code v-pre>PyInit__C()</code> 函数。这个函数又调用了 <code v-pre>initModule()</code>，返回初始化后的模块对象。</li>
+<li>这个模块对象包含了所有需要导出的 C 函数和对象，使得这些函数能够被 Python 调用。</li>
+</ul>
+<h3 id="总结-3" tabindex="-1"><a class="header-anchor" href="#总结-3"><span>总结</span></a></h3>
+<p>这段代码展示了如何在非 Windows 环境下创建一个 C 扩展模块的初始化函数。它将 <code v-pre>initModule</code> 作为模块的实际初始化逻辑，用于设置模块的内容，并通过 <code v-pre>PyInit__C</code> 函数将其导出给 Python 使用。</p>
 </div></template>
 
 
