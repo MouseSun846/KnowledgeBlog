@@ -652,6 +652,51 @@ NVIDIA 集体通信库（NCCL，发音为“Nickel”）是一个库，提供拓
 </ul>
 <h3 id="总结-3" tabindex="-1"><a class="header-anchor" href="#总结-3"><span>总结</span></a></h3>
 <p>这段代码展示了如何在非 Windows 环境下创建一个 C 扩展模块的初始化函数。它将 <code v-pre>initModule</code> 作为模块的实际初始化逻辑，用于设置模块的内容，并通过 <code v-pre>PyInit__C</code> 函数将其导出给 Python 使用。</p>
+<h2 id="nccl-topo" tabindex="-1"><a class="header-anchor" href="#nccl-topo"><span>nccl topo</span></a></h2>
+<div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>#define NCCL_TOPO_MAX_NODES 256</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// Init search. Needs to be done before calling ncclTopoCompute</span></span>
+<span class="line"><span>ncclResult_t ncclTopoSearchInit(struct ncclTopoSystem* system);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_BALANCED_TREE 1   // Spread NIC traffic between two GPUs (Tree parent + one child on first GPU, second child on second GPU)</span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_SPLIT_TREE 2      // Spread NIC traffic between two GPUs (Tree parent on first GPU, tree children on the second GPU)</span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_TREE 3            // All NIC traffic going to/from the same GPU</span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_RING 4            // Ring</span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_NVLS 5            // NVLS+SHARP and NVLS+Tree</span></span>
+<span class="line"><span>#define NCCL_TOPO_PATTERN_COLLNET_DIRECT 6  // Collnet Direct</span></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>NCCL（NVIDIA Collective Communications Library）拓扑结构的定义和初始化。这些定义用于描述不同的通信模式以及节点间的互联方式，尤其是如何在GPU之间分配网络接口卡（NIC）流量的策略。</p>
+<h3 id="代码解析-3" tabindex="-1"><a class="header-anchor" href="#代码解析-3"><span>代码解析：</span></a></h3>
+<ol>
+<li>
+<p><strong><code v-pre>NCCL_TOPO_MAX_NODES 256</code></strong>：
+这个宏定义了NCCL拓扑结构支持的<strong>最大节点数为256</strong>。这里的节点可以是GPU或网络设备（如NIC），意味着NCCL拓扑在设计上最多支持256个节点的互联。这与前面提到的NCCL理论上支持256卡互联是一致的。</p>
+</li>
+<li>
+<p><strong><code v-pre>ncclTopoSearchInit(struct ncclTopoSystem* system)</code></strong>：
+这个函数用于初始化NCCL拓扑搜索过程，准备计算通信拓扑。在调用 <code v-pre>ncclTopoCompute</code> 之前，必须先调用这个函数以初始化系统结构。</p>
+</li>
+<li>
+<p><strong>拓扑通信模式定义</strong>：
+NCCL提供了多种通信模式（<code v-pre>TOPO_PATTERN</code>），这些模式定义了不同情况下网络流量如何在GPU之间分布：</p>
+<ul>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_BALANCED_TREE</code></strong> (1):
+平衡树形结构，NIC流量分布在两个GPU之间。树的父节点和一个子节点在第一个GPU上，第二个子节点在第二个GPU上。</li>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_SPLIT_TREE</code></strong> (2):
+拆分树形结构，NIC流量分布在两个GPU之间。树的父节点在第一个GPU上，子节点都在第二个GPU上。</li>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_TREE</code></strong> (3):
+所有的NIC流量都集中在同一个GPU上。</li>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_RING</code></strong> (4):
+环形结构，流量在GPU之间按顺序传递。</li>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_NVLS</code></strong> (5):
+结合NVLS（NVIDIA Virtual Link Switch）和SHARP（Scalable Hierarchical Aggregation and Reduction Protocol）技术，进行通信优化。</li>
+<li><strong><code v-pre>NCCL_TOPO_PATTERN_COLLNET_DIRECT</code></strong> (6):
+CollNet直接通信模式，通常用于优化大规模集群中的点对点通信。</li>
+</ul>
+</li>
+</ol>
+<h3 id="拓扑结构的意义" tabindex="-1"><a class="header-anchor" href="#拓扑结构的意义"><span>拓扑结构的意义：</span></a></h3>
+<p>这些不同的拓扑模式允许NCCL根据具体的硬件拓扑和通信需求，选择最优的通信模式，以最大化带宽利用率、减少延迟，并优化多GPU、多节点的分布式训练任务。尤其在超大规模GPU集群中（例如256个GPU互联的场景），选择合适的拓扑模式对性能有显著影响。</p>
+<p>因此，在实际使用中，理解这些拓扑模式的定义，并结合硬件架构和通信需求，能够有效提升NCCL的通信性能。</p>
 </div></template>
 
 

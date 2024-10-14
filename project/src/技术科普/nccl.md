@@ -694,3 +694,50 @@ PyMODINIT_FUNC PyInit__C(void)
 ### 总结
 
 这段代码展示了如何在非 Windows 环境下创建一个 C 扩展模块的初始化函数。它将 `initModule` 作为模块的实际初始化逻辑，用于设置模块的内容，并通过 `PyInit__C` 函数将其导出给 Python 使用。
+
+
+
+## nccl topo
+
+```
+#define NCCL_TOPO_MAX_NODES 256
+
+// Init search. Needs to be done before calling ncclTopoCompute
+ncclResult_t ncclTopoSearchInit(struct ncclTopoSystem* system);
+
+#define NCCL_TOPO_PATTERN_BALANCED_TREE 1   // Spread NIC traffic between two GPUs (Tree parent + one child on first GPU, second child on second GPU)
+#define NCCL_TOPO_PATTERN_SPLIT_TREE 2      // Spread NIC traffic between two GPUs (Tree parent on first GPU, tree children on the second GPU)
+#define NCCL_TOPO_PATTERN_TREE 3            // All NIC traffic going to/from the same GPU
+#define NCCL_TOPO_PATTERN_RING 4            // Ring
+#define NCCL_TOPO_PATTERN_NVLS 5            // NVLS+SHARP and NVLS+Tree
+#define NCCL_TOPO_PATTERN_COLLNET_DIRECT 6  // Collnet Direct
+```
+
+NCCL（NVIDIA Collective Communications Library）拓扑结构的定义和初始化。这些定义用于描述不同的通信模式以及节点间的互联方式，尤其是如何在GPU之间分配网络接口卡（NIC）流量的策略。
+
+### 代码解析：
+1. **`NCCL_TOPO_MAX_NODES 256`**：
+   这个宏定义了NCCL拓扑结构支持的**最大节点数为256**。这里的节点可以是GPU或网络设备（如NIC），意味着NCCL拓扑在设计上最多支持256个节点的互联。这与前面提到的NCCL理论上支持256卡互联是一致的。
+
+2. **`ncclTopoSearchInit(struct ncclTopoSystem* system)`**：
+   这个函数用于初始化NCCL拓扑搜索过程，准备计算通信拓扑。在调用 `ncclTopoCompute` 之前，必须先调用这个函数以初始化系统结构。
+
+3. **拓扑通信模式定义**：
+   NCCL提供了多种通信模式（`TOPO_PATTERN`），这些模式定义了不同情况下网络流量如何在GPU之间分布：
+   - **`NCCL_TOPO_PATTERN_BALANCED_TREE`** (1): 
+     平衡树形结构，NIC流量分布在两个GPU之间。树的父节点和一个子节点在第一个GPU上，第二个子节点在第二个GPU上。
+   - **`NCCL_TOPO_PATTERN_SPLIT_TREE`** (2):
+     拆分树形结构，NIC流量分布在两个GPU之间。树的父节点在第一个GPU上，子节点都在第二个GPU上。
+   - **`NCCL_TOPO_PATTERN_TREE`** (3):
+     所有的NIC流量都集中在同一个GPU上。
+   - **`NCCL_TOPO_PATTERN_RING`** (4):
+     环形结构，流量在GPU之间按顺序传递。
+   - **`NCCL_TOPO_PATTERN_NVLS`** (5):
+     结合NVLS（NVIDIA Virtual Link Switch）和SHARP（Scalable Hierarchical Aggregation and Reduction Protocol）技术，进行通信优化。
+   - **`NCCL_TOPO_PATTERN_COLLNET_DIRECT`** (6):
+     CollNet直接通信模式，通常用于优化大规模集群中的点对点通信。
+
+### 拓扑结构的意义：
+这些不同的拓扑模式允许NCCL根据具体的硬件拓扑和通信需求，选择最优的通信模式，以最大化带宽利用率、减少延迟，并优化多GPU、多节点的分布式训练任务。尤其在超大规模GPU集群中（例如256个GPU互联的场景），选择合适的拓扑模式对性能有显著影响。
+
+因此，在实际使用中，理解这些拓扑模式的定义，并结合硬件架构和通信需求，能够有效提升NCCL的通信性能。
