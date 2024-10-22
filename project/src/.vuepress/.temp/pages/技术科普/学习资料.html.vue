@@ -67,6 +67,11 @@ LLM 应用实例。引入一些成功的开源案例，从本课程的角度出�
 <p>本项目旨在作为一个大规模预训练语言模型的教程，从数据准备、模型构建、训练策略到模型评估与改进，以及模型在安全、隐私、环境和法律道德方面的方面来提供开源知识。</p>
 <p>项目将以斯坦福大学大规模语言模型课程和李宏毅生成式AI课程为基础，结合来自开源贡献者的补充和完善，以及对前沿大模型知识的及时更新，为读者提供较为全面而深入的理论知识和实践方法。通过对模型构建、训练、评估与改进等方面的系统性讲解，以及代码的实战，我们希望建立一个具有广泛参考价值的项目。</p>
 <p>我们的项目团队成员将分工负责各个章节的内容梳理和撰写，并预计在三个月内完成初始版本内容。随后，我们将持续根据社区贡献和反馈进行内容的更新和优化，以确保项目的持续发展和知识的时效性。我们期待通过这个项目，为大型语言模型研究领域贡献一份宝贵的资源，推动相关技术的快速发展和广泛应用。</p>
+<h2 id="aifoundation" tabindex="-1"><a class="header-anchor" href="#aifoundation"><span><a href="https://github.com/chenzomi12/AIFoundation/" target="_blank" rel="noopener noreferrer">AIFoundation</a></span></a></h2>
+<p>AIFoundation 主要是指AI系统遇到大模型，从底层到上层如何系统级地支持大模型训练和推理，全栈的核心技术。</p>
+<p>聚焦 AI Foundation，大模型系统。大模型是基于 AI 集群的全栈软硬件性能优化，通过最小的每一块 AI 芯片组成的 AI 集群，编译器使能到上层的 AI 框架，训练过程需要分布式并行、集群通信等算法支持，而且在大模型领域最近持续演进如智能体等新技术。</p>
+<h2 id="aisystem" tabindex="-1"><a class="header-anchor" href="#aisystem"><span><a href="https://github.com/chenzomi12/AISystem" target="_blank" rel="noopener noreferrer">AISystem</a></span></a></h2>
+<p>本开源课程主要是跟大家一起探讨和学习人工智能、深度学习的系统设计，而整个系统是围绕着 ZOMI 在工作当中所积累、梳理、构建 AI 系统全栈的内容。希望跟所有关注 AI 开源课程的好朋友一起探讨研究，共同促进学习讨论。</p>
 </div></template>
 
 
