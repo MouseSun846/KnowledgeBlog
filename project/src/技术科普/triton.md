@@ -6,7 +6,7 @@ category:
 tag:
   - Triton
 ---
-::: Triton Inference Server
+::: info Triton Inference Server
 :::
 
 

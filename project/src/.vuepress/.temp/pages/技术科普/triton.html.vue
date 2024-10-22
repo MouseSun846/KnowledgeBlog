@@ -1,5 +1,6 @@
-<template><div><p>::: Triton Inference Server
-:::</p>
+<template><div><div class="hint-container info">
+<p class="hint-container-title">Triton Inference Server</p>
+</div>
 <h2 id="指标解释" tabindex="-1"><a class="header-anchor" href="#指标解释"><span>指标解释</span></a></h2>
 <p><a href="https://github1s.com/triton-inference-server/tutorials/blob/main/Deployment/Kubernetes/EKS_Multinode_Triton_TRTLLM/multinode_helm_chart/triton-metrics_prometheus-rule.yaml#L38" target="_blank" rel="noopener noreferrer">参考</a></p>
 <div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34"><pre v-pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span># Average percentage of time inference requests spend in queue (not including cache hits).</span></span>
