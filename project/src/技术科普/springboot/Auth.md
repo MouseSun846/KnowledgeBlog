@@ -1,6 +1,6 @@
 ---
 date: 2024-10-22
-title: Springboot
+title: Auth
 category:
   - Auth
 tag:
