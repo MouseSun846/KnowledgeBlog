@@ -72,6 +72,7 @@ LLM 应用实例。引入一些成功的开源案例，从本课程的角度出�
 <p>聚焦 AI Foundation，大模型系统。大模型是基于 AI 集群的全栈软硬件性能优化，通过最小的每一块 AI 芯片组成的 AI 集群，编译器使能到上层的 AI 框架，训练过程需要分布式并行、集群通信等算法支持，而且在大模型领域最近持续演进如智能体等新技术。</p>
 <h2 id="aisystem" tabindex="-1"><a class="header-anchor" href="#aisystem"><span><a href="https://github.com/chenzomi12/AISystem" target="_blank" rel="noopener noreferrer">AISystem</a></span></a></h2>
 <p>本开源课程主要是跟大家一起探讨和学习人工智能、深度学习的系统设计，而整个系统是围绕着 ZOMI 在工作当中所积累、梳理、构建 AI 系统全栈的内容。希望跟所有关注 AI 开源课程的好朋友一起探讨研究，共同促进学习讨论。</p>
+<h2 id="llm-action" tabindex="-1"><a class="header-anchor" href="#llm-action"><span><a href="https://github.com/liguodongiot/llm-action" target="_blank" rel="noopener noreferrer">llm-action</a></span></a></h2>
 </div></template>
 
 
