@@ -1,0 +1,174 @@
+import{_ as s,c as n,o as a,a as e}from"./app-lgZmGrS8.js";const i={},l=e(`<div class="hint-container tip"><p class="hint-container-title">Lobechat</p></div><h2 id="部署文档" tabindex="-1"><a class="header-anchor" href="#部署文档"><span>部署文档</span></a></h2><p><a href="https://lobehub.com/zh/docs/self-hosting/server-database/docker-compose" target="_blank" rel="noopener noreferrer">使用 Docker Compose 部署 LobeChat 服务端数据库版本</a></p><h2 id="docker-compose" tabindex="-1"><a class="header-anchor" href="#docker-compose"><span>docker-compose</span></a></h2><div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34;"><pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>root@iZ2zei23h3vwykyqq9th6oZ:/home/lobe-chat/docker-compose/local# cat docker-compose.yml </span></span>
+<span class="line"><span>name: lobe-chat-database</span></span>
+<span class="line"><span>services:</span></span>
+<span class="line"><span>  network-service:</span></span>
+<span class="line"><span>    image: alpine</span></span>
+<span class="line"><span>    container_name: lobe-network</span></span>
+<span class="line"><span>    ports:</span></span>
+<span class="line"><span>      - &#39;\${MINIO_PORT}:\${MINIO_PORT}&#39; # MinIO API</span></span>
+<span class="line"><span>      - &#39;9001:9001&#39; # MinIO Console</span></span>
+<span class="line"><span>      - &#39;\${CASDOOR_PORT}:8000&#39; # Casdoor</span></span>
+<span class="line"><span>      - &#39;\${LOBE_PORT}:3210&#39; # LobeChat</span></span>
+<span class="line"><span>    command: tail -f /dev/null</span></span>
+<span class="line"><span>    networks:</span></span>
+<span class="line"><span>      - lobe-network</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  postgresql:</span></span>
+<span class="line"><span>    image: pgvector/pgvector:pg16</span></span>
+<span class="line"><span>    container_name: lobe-postgres</span></span>
+<span class="line"><span>    ports:</span></span>
+<span class="line"><span>      - &#39;5432:5432&#39;</span></span>
+<span class="line"><span>    volumes:</span></span>
+<span class="line"><span>      - &#39;./data:/var/lib/postgresql/data&#39;</span></span>
+<span class="line"><span>    environment:</span></span>
+<span class="line"><span>      - &#39;POSTGRES_DB=\${LOBE_DB_NAME}&#39;</span></span>
+<span class="line"><span>      - &#39;POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}&#39;</span></span>
+<span class="line"><span>    healthcheck:</span></span>
+<span class="line"><span>      test: [&#39;CMD-SHELL&#39;, &#39;pg_isready -U postgres&#39;]</span></span>
+<span class="line"><span>      interval: 5s</span></span>
+<span class="line"><span>      timeout: 5s</span></span>
+<span class="line"><span>      retries: 5</span></span>
+<span class="line"><span>    restart: always</span></span>
+<span class="line"><span>    networks:</span></span>
+<span class="line"><span>      - lobe-network</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  minio:</span></span>
+<span class="line"><span>    image: minio/minio</span></span>
+<span class="line"><span>    container_name: lobe-minio</span></span>
+<span class="line"><span>    network_mode: &#39;service:network-service&#39;</span></span>
+<span class="line"><span>    volumes:</span></span>
+<span class="line"><span>      - &#39;./s3_data:/etc/minio/data&#39;</span></span>
+<span class="line"><span>    environment:</span></span>
+<span class="line"><span>      - &#39;MINIO_ROOT_USER=\${MINIO_ROOT_USER}&#39;</span></span>
+<span class="line"><span>      - &#39;MINIO_ROOT_PASSWORD=\${MINIO_ROOT_PASSWORD}&#39;</span></span>
+<span class="line"><span>      - &#39;MINIO_API_CORS_ALLOW_ORIGIN=http://182.92.116.31:\${LOBE_PORT}&#39;</span></span>
+<span class="line"><span>    restart: always</span></span>
+<span class="line"><span>    command: &gt;</span></span>
+<span class="line"><span>      server /etc/minio/data --address &quot;:\${MINIO_PORT}&quot; --console-address &quot;:9001&quot;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  casdoor:</span></span>
+<span class="line"><span>    image: casbin/casdoor</span></span>
+<span class="line"><span>    container_name: lobe-casdoor</span></span>
+<span class="line"><span>    entrypoint: /bin/sh -c &#39;./server --createDatabase=true&#39;</span></span>
+<span class="line"><span>    network_mode: &#39;service:network-service&#39;</span></span>
+<span class="line"><span>    depends_on:</span></span>
+<span class="line"><span>      postgresql:</span></span>
+<span class="line"><span>        condition: service_healthy</span></span>
+<span class="line"><span>    environment:</span></span>
+<span class="line"><span>      RUNNING_IN_DOCKER: &#39;true&#39;</span></span>
+<span class="line"><span>      driverName: &#39;postgres&#39;</span></span>
+<span class="line"><span>      dataSourceName: &#39;user=postgres password=\${POSTGRES_PASSWORD} host=postgresql port=5432 sslmode=disable dbname=casdoor&#39;</span></span>
+<span class="line"><span>      origin: &#39;http://182.92.116.31:\${CASDOOR_PORT}&#39;</span></span>
+<span class="line"><span>      runmode: &#39;dev&#39;</span></span>
+<span class="line"><span>    volumes:</span></span>
+<span class="line"><span>      - ./init_data.json:/init_data.json</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  lobe:</span></span>
+<span class="line"><span>    image: lobehub/lobe-chat-database</span></span>
+<span class="line"><span>    container_name: lobe-chat</span></span>
+<span class="line"><span>    network_mode: &#39;service:network-service&#39;</span></span>
+<span class="line"><span>    depends_on:</span></span>
+<span class="line"><span>      postgresql:</span></span>
+<span class="line"><span>        condition: service_healthy</span></span>
+<span class="line"><span>      network-service:</span></span>
+<span class="line"><span>        condition: service_started</span></span>
+<span class="line"><span>      minio:</span></span>
+<span class="line"><span>        condition: service_started</span></span>
+<span class="line"><span>      casdoor:</span></span>
+<span class="line"><span>        condition: service_started</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    environment:</span></span>
+<span class="line"><span>      - &#39;APP_URL=http://182.92.116.31:3210&#39;</span></span>
+<span class="line"><span>      - &#39;NEXT_AUTH_SSO_PROVIDERS=casdoor&#39;</span></span>
+<span class="line"><span>      - &#39;KEY_VAULTS_SECRET=Kix2wcUONd4CX51E/ZPAd36BqM4wzJgKjPtz2sGztqQ=&#39;</span></span>
+<span class="line"><span>      - &#39;NEXT_AUTH_SECRET=QCtusYE5HEzg1IGy1BMbW4SNgF+yBkcKha4ghUyI6WY=&#39;</span></span>
+<span class="line"><span>      - &#39;AUTH_URL=http://182.92.116.31:8800/api/auth&#39;</span></span>
+<span class="line"><span>      - &#39;AUTH_CASDOOR_ISSUER=http://182.92.116.31:8800/&#39;</span></span>
+<span class="line"><span>      - &#39;DATABASE_URL=postgresql://postgres:\${POSTGRES_PASSWORD}@postgresql:5432/\${LOBE_DB_NAME}&#39;</span></span>
+<span class="line"><span>      - &#39;S3_ENDPOINT=http://182.92.116.31:\${MINIO_PORT}&#39;</span></span>
+<span class="line"><span>      - &#39;S3_BUCKET=\${MINIO_LOBE_BUCKET}&#39;</span></span>
+<span class="line"><span>      - &#39;S3_PUBLIC_DOMAIN=http://182.90.116.31:\${MINIO_PORT}&#39;</span></span>
+<span class="line"><span>      - &#39;S3_ENABLE_PATH_STYLE=1&#39;</span></span>
+<span class="line"><span>      - &#39;LLM_VISION_IMAGE_USE_BASE64=1&#39;</span></span>
+<span class="line"><span>    env_file:</span></span>
+<span class="line"><span>      - .env</span></span>
+<span class="line"><span>    restart: always</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>volumes:</span></span>
+<span class="line"><span>  data:</span></span>
+<span class="line"><span>    driver: local</span></span>
+<span class="line"><span>  s3_data:</span></span>
+<span class="line"><span>    driver: local</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>networks:</span></span>
+<span class="line"><span>  lobe-network:</span></span>
+<span class="line"><span>    driver: bridge</span></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="env" tabindex="-1"><a class="header-anchor" href="#env"><span>env</span></a></h2><div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34;"><pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>root@iZ2zei23h3vwykyqq9th6oZ:/home/lobe-chat/docker-compose/local# cat .env</span></span>
+<span class="line"><span># Proxy, if you need it</span></span>
+<span class="line"><span># HTTP_PROXY=http://localhost:7890</span></span>
+<span class="line"><span># HTTPS_PROXY=http://localhost:7890</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Other environment variables, as needed. You can refer to the environment variables configuration for the client version, making sure not to have ACCESS_CODE.</span></span>
+<span class="line"><span># OPENAI_API_KEY=sk-xxxx</span></span>
+<span class="line"><span># OPENAI_PROXY_URL=https://api.openai.com/v1</span></span>
+<span class="line"><span># OPENAI_MODEL_LIST=...</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># ===========================</span></span>
+<span class="line"><span># ====== Preset config ====== </span></span>
+<span class="line"><span># ===========================</span></span>
+<span class="line"><span># if no special requirements, no need to change</span></span>
+<span class="line"><span>LOBE_PORT=3210</span></span>
+<span class="line"><span>CASDOOR_PORT=8800</span></span>
+<span class="line"><span>MINIO_PORT=9000</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Postgres related, which are the necessary environment variables for DB</span></span>
+<span class="line"><span>LOBE_DB_NAME=lobechat</span></span>
+<span class="line"><span>POSTGRES_PASSWORD=uWNZugjBqixf8dxC</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Casdoor secret</span></span>
+<span class="line"><span>AUTH_CASDOOR_ID=a387a4892ee19b1a2249</span></span>
+<span class="line"><span>AUTH_CASDOOR_SECRET=dbf205949d704de81b0b5b3603174e23fbecc354</span></span>
+<span class="line"><span># MinIO S3 configuration</span></span>
+<span class="line"><span>MINIO_ROOT_USER=YOUR_MINIO_USER</span></span>
+<span class="line"><span>MINIO_ROOT_PASSWORD=YOUR_MINIO_PASSWORD</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Configure the bucket information of MinIO</span></span>
+<span class="line"><span>MINIO_LOBE_BUCKET=lobe</span></span>
+<span class="line"><span>S3_ACCESS_KEY_ID=soaucnP8Bip0TDdUjxng</span></span>
+<span class="line"><span>S3_SECRET_ACCESS_KEY=ZPUzvY34umfcfxvWKSv0P00vczVMB6YmgJS5J9eO</span></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="minio-bucket-config-json" tabindex="-1"><a class="header-anchor" href="#minio-bucket-config-json"><span>minio-bucket.config.json</span></a></h2><div class="language- line-numbers-mode" data-highlighter="shiki" data-ext="" data-title="" style="--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34;"><pre class="shiki shiki-themes github-light one-dark-pro vp-code"><code><span class="line"><span>root@iZ2zei23h3vwykyqq9th6oZ:/home/lobe-chat/docker-compose# cat minio-bucket.config.json </span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>  &quot;Statement&quot;: [</span></span>
+<span class="line"><span>    {</span></span>
+<span class="line"><span>      &quot;Effect&quot;: &quot;Allow&quot;,</span></span>
+<span class="line"><span>      &quot;Principal&quot;: {</span></span>
+<span class="line"><span>        &quot;AWS&quot;: [&quot;*&quot;]</span></span>
+<span class="line"><span>      },</span></span>
+<span class="line"><span>      &quot;Action&quot;: [&quot;s3:GetBucketLocation&quot;],</span></span>
+<span class="line"><span>      &quot;Resource&quot;: [&quot;arn:aws:s3:::lobe&quot;]</span></span>
+<span class="line"><span>    },</span></span>
+<span class="line"><span>    {</span></span>
+<span class="line"><span>      &quot;Effect&quot;: &quot;Allow&quot;,</span></span>
+<span class="line"><span>      &quot;Principal&quot;: {</span></span>
+<span class="line"><span>        &quot;AWS&quot;: [&quot;*&quot;]</span></span>
+<span class="line"><span>      },</span></span>
+<span class="line"><span>      &quot;Action&quot;: [&quot;s3:ListBucket&quot;],</span></span>
+<span class="line"><span>      &quot;Resource&quot;: [&quot;arn:aws:s3:::lobe&quot;],</span></span>
+<span class="line"><span>      &quot;Condition&quot;: {</span></span>
+<span class="line"><span>        &quot;StringEquals&quot;: {</span></span>
+<span class="line"><span>          &quot;s3:prefix&quot;: [&quot;files/*&quot;]</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>      }</span></span>
+<span class="line"><span>    },</span></span>
+<span class="line"><span>    {</span></span>
+<span class="line"><span>      &quot;Effect&quot;: &quot;Allow&quot;,</span></span>
+<span class="line"><span>      &quot;Principal&quot;: {</span></span>
+<span class="line"><span>        &quot;AWS&quot;: [&quot;*&quot;]</span></span>
+<span class="line"><span>      },</span></span>
+<span class="line"><span>      &quot;Action&quot;: [&quot;s3:PutObject&quot;, &quot;s3:DeleteObject&quot;, &quot;s3:GetObject&quot;],</span></span>
+<span class="line"><span>      &quot;Resource&quot;: [&quot;arn:aws:s3:::lobe/files/**&quot;]</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>  ],</span></span>
+<span class="line"><span>  &quot;Version&quot;: &quot;2012-10-17&quot;</span></span>
+<span class="line"><span>}</span></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div>`,9),p=[l];function c(d,r){return a(),n("div",null,p)}const t=s(i,[["render",c],["__file","lobechat.html.vue"]]),o=JSON.parse(`{"path":"/%E6%8A%80%E6%9C%AF%E7%A7%91%E6%99%AE/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2/lobechat.html","title":"Lobechat","lang":"zh-CN","frontmatter":{"date":"2024-10-21T00:00:00.000Z","title":"Lobechat","category":["AIGC"],"tag":["Lobechat"],"description":"Lobechat 部署文档 使用 Docker Compose 部署 LobeChat 服务端数据库版本 docker-compose env minio-bucket.config.json","head":[["meta",{"property":"og:url","content":"https://mousesun846.github.io/KnowledgeBlog/KnowledgeBlog/%E6%8A%80%E6%9C%AF%E7%A7%91%E6%99%AE/AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2/lobechat.html"}],["meta",{"property":"og:site_name","content":"知识笔记"}],["meta",{"property":"og:title","content":"Lobechat"}],["meta",{"property":"og:description","content":"Lobechat 部署文档 使用 Docker Compose 部署 LobeChat 服务端数据库版本 docker-compose env minio-bucket.config.json"}],["meta",{"property":"og:type","content":"article"}],["meta",{"property":"og:locale","content":"zh-CN"}],["meta",{"property":"og:updated_time","content":"2024-10-21T06:27:55.000Z"}],["meta",{"property":"article:author","content":"MouseSun"}],["meta",{"property":"article:tag","content":"Lobechat"}],["meta",{"property":"article:published_time","content":"2024-10-21T00:00:00.000Z"}],["meta",{"property":"article:modified_time","content":"2024-10-21T06:27:55.000Z"}],["script",{"type":"application/ld+json"},"{\\"@context\\":\\"https://schema.org\\",\\"@type\\":\\"Article\\",\\"headline\\":\\"Lobechat\\",\\"image\\":[\\"\\"],\\"datePublished\\":\\"2024-10-21T00:00:00.000Z\\",\\"dateModified\\":\\"2024-10-21T06:27:55.000Z\\",\\"author\\":[{\\"@type\\":\\"Person\\",\\"name\\":\\"MouseSun\\",\\"url\\":\\"https://github.com/MouseSun846\\",\\"email\\":\\"\\"}]}"]]},"headers":[{"level":2,"title":"部署文档","slug":"部署文档","link":"#部署文档","children":[]},{"level":2,"title":"docker-compose","slug":"docker-compose","link":"#docker-compose","children":[]},{"level":2,"title":"env","slug":"env","link":"#env","children":[]},{"level":2,"title":"minio-bucket.config.json","slug":"minio-bucket-config-json","link":"#minio-bucket-config-json","children":[]}],"git":{"createdTime":1729492075000,"updatedTime":1729492075000,"contributors":[{"name":"mousesun","email":"3026098675@qq.com","commits":1}]},"readingTime":{"minutes":1.47,"words":442},"filePathRelative":"技术科普/AI大模型部署/lobechat.md","localizedDate":"2024年10月21日","excerpt":"<div class=\\"hint-container tip\\">\\n<p class=\\"hint-container-title\\">Lobechat</p>\\n</div>\\n<h2>部署文档</h2>\\n<p><a href=\\"https://lobehub.com/zh/docs/self-hosting/server-database/docker-compose\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\">使用 Docker Compose 部署 LobeChat 服务端数据库版本</a></p>\\n<h2>docker-compose</h2>\\n<div class=\\"language- line-numbers-mode\\" data-highlighter=\\"shiki\\" data-ext=\\"\\" data-title=\\"\\" style=\\"--shiki-light:#24292e;--shiki-dark:#abb2bf;--shiki-light-bg:#fff;--shiki-dark-bg:#282c34\\"><pre class=\\"shiki shiki-themes github-light one-dark-pro vp-code\\"><code><span class=\\"line\\"><span>root@iZ2zei23h3vwykyqq9th6oZ:/home/lobe-chat/docker-compose/local# cat docker-compose.yml </span></span>\\n<span class=\\"line\\"><span>name: lobe-chat-database</span></span>\\n<span class=\\"line\\"><span>services:</span></span>\\n<span class=\\"line\\"><span>  network-service:</span></span>\\n<span class=\\"line\\"><span>    image: alpine</span></span>\\n<span class=\\"line\\"><span>    container_name: lobe-network</span></span>\\n<span class=\\"line\\"><span>    ports:</span></span>\\n<span class=\\"line\\"><span>      - '\${MINIO_PORT}:\${MINIO_PORT}' # MinIO API</span></span>\\n<span class=\\"line\\"><span>      - '9001:9001' # MinIO Console</span></span>\\n<span class=\\"line\\"><span>      - '\${CASDOOR_PORT}:8000' # Casdoor</span></span>\\n<span class=\\"line\\"><span>      - '\${LOBE_PORT}:3210' # LobeChat</span></span>\\n<span class=\\"line\\"><span>    command: tail -f /dev/null</span></span>\\n<span class=\\"line\\"><span>    networks:</span></span>\\n<span class=\\"line\\"><span>      - lobe-network</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>  postgresql:</span></span>\\n<span class=\\"line\\"><span>    image: pgvector/pgvector:pg16</span></span>\\n<span class=\\"line\\"><span>    container_name: lobe-postgres</span></span>\\n<span class=\\"line\\"><span>    ports:</span></span>\\n<span class=\\"line\\"><span>      - '5432:5432'</span></span>\\n<span class=\\"line\\"><span>    volumes:</span></span>\\n<span class=\\"line\\"><span>      - './data:/var/lib/postgresql/data'</span></span>\\n<span class=\\"line\\"><span>    environment:</span></span>\\n<span class=\\"line\\"><span>      - 'POSTGRES_DB=\${LOBE_DB_NAME}'</span></span>\\n<span class=\\"line\\"><span>      - 'POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}'</span></span>\\n<span class=\\"line\\"><span>    healthcheck:</span></span>\\n<span class=\\"line\\"><span>      test: ['CMD-SHELL', 'pg_isready -U postgres']</span></span>\\n<span class=\\"line\\"><span>      interval: 5s</span></span>\\n<span class=\\"line\\"><span>      timeout: 5s</span></span>\\n<span class=\\"line\\"><span>      retries: 5</span></span>\\n<span class=\\"line\\"><span>    restart: always</span></span>\\n<span class=\\"line\\"><span>    networks:</span></span>\\n<span class=\\"line\\"><span>      - lobe-network</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>  minio:</span></span>\\n<span class=\\"line\\"><span>    image: minio/minio</span></span>\\n<span class=\\"line\\"><span>    container_name: lobe-minio</span></span>\\n<span class=\\"line\\"><span>    network_mode: 'service:network-service'</span></span>\\n<span class=\\"line\\"><span>    volumes:</span></span>\\n<span class=\\"line\\"><span>      - './s3_data:/etc/minio/data'</span></span>\\n<span class=\\"line\\"><span>    environment:</span></span>\\n<span class=\\"line\\"><span>      - 'MINIO_ROOT_USER=\${MINIO_ROOT_USER}'</span></span>\\n<span class=\\"line\\"><span>      - 'MINIO_ROOT_PASSWORD=\${MINIO_ROOT_PASSWORD}'</span></span>\\n<span class=\\"line\\"><span>      - 'MINIO_API_CORS_ALLOW_ORIGIN=http://182.92.116.31:\${LOBE_PORT}'</span></span>\\n<span class=\\"line\\"><span>    restart: always</span></span>\\n<span class=\\"line\\"><span>    command: &gt;</span></span>\\n<span class=\\"line\\"><span>      server /etc/minio/data --address \\":\${MINIO_PORT}\\" --console-address \\":9001\\"</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>  casdoor:</span></span>\\n<span class=\\"line\\"><span>    image: casbin/casdoor</span></span>\\n<span class=\\"line\\"><span>    container_name: lobe-casdoor</span></span>\\n<span class=\\"line\\"><span>    entrypoint: /bin/sh -c './server --createDatabase=true'</span></span>\\n<span class=\\"line\\"><span>    network_mode: 'service:network-service'</span></span>\\n<span class=\\"line\\"><span>    depends_on:</span></span>\\n<span class=\\"line\\"><span>      postgresql:</span></span>\\n<span class=\\"line\\"><span>        condition: service_healthy</span></span>\\n<span class=\\"line\\"><span>    environment:</span></span>\\n<span class=\\"line\\"><span>      RUNNING_IN_DOCKER: 'true'</span></span>\\n<span class=\\"line\\"><span>      driverName: 'postgres'</span></span>\\n<span class=\\"line\\"><span>      dataSourceName: 'user=postgres password=\${POSTGRES_PASSWORD} host=postgresql port=5432 sslmode=disable dbname=casdoor'</span></span>\\n<span class=\\"line\\"><span>      origin: 'http://182.92.116.31:\${CASDOOR_PORT}'</span></span>\\n<span class=\\"line\\"><span>      runmode: 'dev'</span></span>\\n<span class=\\"line\\"><span>    volumes:</span></span>\\n<span class=\\"line\\"><span>      - ./init_data.json:/init_data.json</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>  lobe:</span></span>\\n<span class=\\"line\\"><span>    image: lobehub/lobe-chat-database</span></span>\\n<span class=\\"line\\"><span>    container_name: lobe-chat</span></span>\\n<span class=\\"line\\"><span>    network_mode: 'service:network-service'</span></span>\\n<span class=\\"line\\"><span>    depends_on:</span></span>\\n<span class=\\"line\\"><span>      postgresql:</span></span>\\n<span class=\\"line\\"><span>        condition: service_healthy</span></span>\\n<span class=\\"line\\"><span>      network-service:</span></span>\\n<span class=\\"line\\"><span>        condition: service_started</span></span>\\n<span class=\\"line\\"><span>      minio:</span></span>\\n<span class=\\"line\\"><span>        condition: service_started</span></span>\\n<span class=\\"line\\"><span>      casdoor:</span></span>\\n<span class=\\"line\\"><span>        condition: service_started</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>    environment:</span></span>\\n<span class=\\"line\\"><span>      - 'APP_URL=http://182.92.116.31:3210'</span></span>\\n<span class=\\"line\\"><span>      - 'NEXT_AUTH_SSO_PROVIDERS=casdoor'</span></span>\\n<span class=\\"line\\"><span>      - 'KEY_VAULTS_SECRET=Kix2wcUONd4CX51E/ZPAd36BqM4wzJgKjPtz2sGztqQ='</span></span>\\n<span class=\\"line\\"><span>      - 'NEXT_AUTH_SECRET=QCtusYE5HEzg1IGy1BMbW4SNgF+yBkcKha4ghUyI6WY='</span></span>\\n<span class=\\"line\\"><span>      - 'AUTH_URL=http://182.92.116.31:8800/api/auth'</span></span>\\n<span class=\\"line\\"><span>      - 'AUTH_CASDOOR_ISSUER=http://182.92.116.31:8800/'</span></span>\\n<span class=\\"line\\"><span>      - 'DATABASE_URL=postgresql://postgres:\${POSTGRES_PASSWORD}@postgresql:5432/\${LOBE_DB_NAME}'</span></span>\\n<span class=\\"line\\"><span>      - 'S3_ENDPOINT=http://182.92.116.31:\${MINIO_PORT}'</span></span>\\n<span class=\\"line\\"><span>      - 'S3_BUCKET=\${MINIO_LOBE_BUCKET}'</span></span>\\n<span class=\\"line\\"><span>      - 'S3_PUBLIC_DOMAIN=http://182.90.116.31:\${MINIO_PORT}'</span></span>\\n<span class=\\"line\\"><span>      - 'S3_ENABLE_PATH_STYLE=1'</span></span>\\n<span class=\\"line\\"><span>      - 'LLM_VISION_IMAGE_USE_BASE64=1'</span></span>\\n<span class=\\"line\\"><span>    env_file:</span></span>\\n<span class=\\"line\\"><span>      - .env</span></span>\\n<span class=\\"line\\"><span>    restart: always</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>volumes:</span></span>\\n<span class=\\"line\\"><span>  data:</span></span>\\n<span class=\\"line\\"><span>    driver: local</span></span>\\n<span class=\\"line\\"><span>  s3_data:</span></span>\\n<span class=\\"line\\"><span>    driver: local</span></span>\\n<span class=\\"line\\"><span></span></span>\\n<span class=\\"line\\"><span>networks:</span></span>\\n<span class=\\"line\\"><span>  lobe-network:</span></span>\\n<span class=\\"line\\"><span>    driver: bridge</span></span></code></pre>\\n<div class=\\"line-numbers\\" aria-hidden=\\"true\\" style=\\"counter-reset:line-number 0\\"><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div><div class=\\"line-number\\"></div></div></div>","autoDesc":true}`);export{t as comp,o as data};
